@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "亚马逊助手 (ASIN/价格提取器)",
-  "version": "1.0",
+  "version": "1.1",
   "description": "在亚马逊商品页面按 Alt+Q 或点击浮动按钮提取ASIN和价格到剪贴板。",
   "permissions": [
     "activeTab",
