@@ -11,8 +11,8 @@ function createFloatingButtonGroup() {
 
     // 创建按钮数组，设置不同的默认颜色
     const buttons = [
-        { content: '🚀 标准提取', action: () => handleExtraction(false), color: '#ef9013' }, // 绿色
-        { content: '📋 简易提取', action: () => handleExtraction(true), color: '#054bcd' }  // 橙色
+        { content: '🚀 标准提取', action: () => handleExtraction(false), color: '#ef9013' }, // 橙色
+        { content: '📋 简易提取', action: () => handleExtraction(true), color: '#054bcd' }  // 蓝色
     ];
 
     // 生成按钮并添加到按钮组
@@ -25,6 +25,19 @@ function createFloatingButtonGroup() {
 
     // 拖动功能
     initializeDrag(buttonGroup);
+
+    // 添加快捷键监听
+    document.addEventListener('keydown', (e) => {
+        if (e.altKey) {
+            if (['q', 'Q'].includes(e.key)) {
+                e.preventDefault(); // 阻止默认行为
+                handleExtraction(false); // 标准提取
+            } else if (['w', 'W'].includes(e.key)) {
+                e.preventDefault(); // 阻止默认行为
+                handleExtraction(true); // 简易提取
+            }
+        }
+    });
 }
 
 function createButton(content, index, action, backgroundColor) {
@@ -101,7 +114,7 @@ function initializeDrag(buttonGroup) {
 // 获取价格
 function getPrice() {
     const host = window.location.host;
-    let priceXPath = '//div[@id="corePrice_feature_div"]//span[contains(@class, "a-price") and contains(@class, "aok-align-center")]//span[@class="a-offscreen"]';
+    let priceXPath = '//*[@id="apex_offerDisplay_desktop"]//*[contains(@class, "a-offscreen")]/text()[1]';
     const priceElement = document.evaluate(priceXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
 
     if (priceElement && priceElement.textContent) {
