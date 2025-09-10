@@ -5,7 +5,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const urlObj = new URL(targetUrl);
 
         // 1. 从浏览器获取目标域名的所有Cookie
-        chrome.cookies.getAll({ url: targetUrl }, (cookies) => {
+        chrome.cookies.getAll({url: targetUrl}, (cookies) => {
             // 格式化Cookie为请求头格式（name=value; name2=value2）
             const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
 
@@ -14,9 +14,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 ...message.headers,
                 'Cookie': cookieStr,  // 注入浏览器Cookie
                 'User-Agent': message.userAgent,  // 使用页面传递的User-Agent
-                'Referer': urlObj.origin,  // 模拟浏览器Referer
                 'Accept-Language': 'en-US,en;q=0.9'  // 模拟浏览器语言设置
             };
+            console.log("headers", headers);
+            console.log("cookieStr", cookieStr);
 
             // 3. 发起带浏览器环境信息的请求
             fetch(targetUrl, {
@@ -30,8 +31,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     if (!response.ok) {
                         throw new Error(`HTTP错误: ${response.status}`);
                     }
-                    // 处理可能的非JSON响应
-                    return response.json().catch(() => response.text());
+                    // 处理可能的非JSON响应（修复流重复读取问题）
+                    return response.text().then(text => {
+                        try {
+                            return JSON.parse(text);
+                        } catch {
+                            return text;
+                        }
+                    });
                 })
                 .then(result => {
                     sendResponse({

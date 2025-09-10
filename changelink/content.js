@@ -111,6 +111,8 @@ async function triggerSyncRequest(zipCode, host, link) {
             'accept': 'application/json',
             'content-type': 'application/json',
             'user-agent': userAgent,
+            'origin': `https://${host}`,
+            'referer': link,  // 模拟浏览器Referer
         };
 
         // 向background发送请求
@@ -128,6 +130,10 @@ async function triggerSyncRequest(zipCode, host, link) {
                 reject(new Error('无法连接到后台服务'));
                 return;
             }
+
+            console.log('url:', url);
+            console.log('headers:', headers);
+            console.log('json_data:', json_data);
 
             if (response.type === 'FETCH_RESPONSE') {
                 console.log('邮编设置成功:', response.result);
