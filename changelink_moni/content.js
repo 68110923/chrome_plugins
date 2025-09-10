@@ -71,6 +71,7 @@ function extractProductInfo() {
             linkAnchor.style.color = '#165DFF';
             linkAnchor.style.textDecoration = 'underline';
             linkAnchor.title = `查看亚马逊${countryCode}站点商品`;
+            linkAnchor.style.fontWeight = 'bold'; // 设置加粗
 
             linkAnchor.addEventListener('click', (e) => {
                 if (zipCode && zipCode !== '00000') {
@@ -119,7 +120,7 @@ function throttleProcess() {
 
 // 定时器检查（保留原有逻辑，但延长间隔）
 let isProcessing = false;
-const throttleInterval = 5000; // 延长定时器间隔到5秒
+const throttleInterval = 2500; // 延长定时器间隔到5秒
 
 function checkAndProcess() {
     if (isProcessing) return;
