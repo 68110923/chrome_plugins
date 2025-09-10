@@ -7,8 +7,12 @@
     "activeTab",
     "cookies",
     "https://*.amazon.com/*",
+    "https://*.amazon.it/*",
     "https://*.amazon.co.uk/*",
-    "https://*.amazon.de/*"
+    "https://*.amazon.de/*",
+    "https://*.amazon.fr/*",
+    "https://*.amazon.jp/*",
+    "https://*.amazon.ca/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -21,6 +25,7 @@
   ],
   "host_permissions": [
     "https://*.amazon.com/*",
+    "https://*.amazon.it/*",
     "https://*.amazon.co.uk/*",
     "https://*.amazon.de/*",
     "https://*.amazon.fr/*",
