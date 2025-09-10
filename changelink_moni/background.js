@@ -28,7 +28,7 @@ async function handleTabNavigation(url, zipCode) {
             }
         }
 
-        // 统一等待标签页加载完成（无论新建还是激活已有）
+        // 统一等待标签页加载完成
         await new Promise((resolve) => {
             const listener = (tabId, info) => {
                 if (tabId === targetTab.id && info.status === 'complete') {
@@ -38,7 +38,7 @@ async function handleTabNavigation(url, zipCode) {
             };
             chrome.tabs.onUpdated.addListener(listener);
 
-            // 立即检查一次状态（防止页面已经加载完成）
+            // 立即检查一次状态
             chrome.tabs.get(targetTab.id, (tab) => {
                 if (tab.status === 'complete') {
                     chrome.tabs.onUpdated.removeListener(listener);
@@ -49,11 +49,11 @@ async function handleTabNavigation(url, zipCode) {
             // 超时保护
             setTimeout(() => {
                 chrome.tabs.onUpdated.removeListener(listener);
-                resolve(); // 即使未完全加载也继续执行
+                resolve();
             }, 10000);
         });
 
-        // 注入邮编设置脚本（现在无论新建还是激活都能确保页面就绪）
+        // 注入邮编设置脚本
         console.log('准备注入邮编设置脚本到标签页:', targetTab.id);
         await chrome.scripting.executeScript({
             target: { tabId: targetTab.id },
@@ -104,7 +104,7 @@ function setAmazonZipCode(zipCode) {
             // 填写邮编
             const zipInput = await waitForElement('#GLUXZipUpdateInput');
             zipInput.value = zipCode;
-            // 触发输入事件，确保亚马逊能检测到值的变化
+            // 触发输入事件
             zipInput.dispatchEvent(new Event('input', { bubbles: true }));
 
             // 点击更新按钮
@@ -129,17 +129,34 @@ function setAmazonZipCode(zipCode) {
     })();
 }
 
-// 修改消息监听部分
+// 监听特定的POST请求
+chrome.webRequest.onCompleted.addListener(
+    (details) => {
+        // 只处理POST请求
+        if (details.method === 'POST') {
+            // 向当前激活的标签页发送消息
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs.length > 0) {
+                    chrome.tabs.sendMessage(tabs[0].id, {
+                        action: 'packageDetailLoaded'
+                    });
+                }
+            });
+        }
+    },
+    { urls: ["https://www.dianxiaomi.com/package/detail.htm"] }  // 监控的目标URL
+);
+
+// 消息监听部分
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'setupAmazonZipCode') {
         handleTabNavigation(message.url, message.zipCode);
-        sendResponse({ status: 'received' }); // 确保发送响应
+        sendResponse({ status: 'received' });
     }
     else if (message.action === 'getZipCodeEnabled') {
         chrome.storage.sync.get(['zipCodeEnabled'], (result) => {
-            // 明确返回默认值
             sendResponse({ enabled: result.zipCodeEnabled !== false });
         });
-        return true; // 保持异步响应标记
+        return true; // 保持异步响应
     }
 });

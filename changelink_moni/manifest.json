@@ -7,7 +7,8 @@
     "activeTab",
     "cookies",
     "scripting",
-    "storage"
+    "storage",
+    "webRequest"
   ],
   "background": {
     "service_worker": "background.js"
@@ -36,7 +37,8 @@
     "https://*.amazon.nl/*",
     "https://*.amazon.se/*",
     "https://*.amazon.pl/*",
-    "https://*.amazon.sg/*"
+    "https://*.amazon.sg/*",
+    "https://www.dianxiaomi.com/package/detail.htm"  // 添加目标请求地址
   ],
   "icons": {
     "16": "icons/icon16.png"
