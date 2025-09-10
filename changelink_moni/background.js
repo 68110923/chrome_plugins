@@ -1,0 +1,126 @@
+// background.js
+
+/**
+ * 检查并激活已有标签页，如果不存在则创建新标签页
+ * @param {string} url - 目标URL
+ * @param {string} zipCode - 邮编
+ */
+async function handleTabNavigation(url, zipCode) {
+    try {
+        // 检查是否已有相同URL的标签页
+        const existingTabs = await new Promise(resolve =>
+            chrome.tabs.query({ url }, resolve)
+        );
+
+        if (existingTabs.length > 0) {
+            // 激活已有标签页
+            await new Promise(resolve =>
+                chrome.tabs.update(existingTabs[0].id, { active: true }, resolve)
+            );
+            return;
+        }
+
+        // 创建新标签页
+        const tab = await new Promise(resolve =>
+            chrome.tabs.create({ url }, resolve)
+        );
+
+        if (!tab) {
+            throw new Error('创建标签页失败');
+        }
+
+        // 等待标签页加载完成
+        await new Promise((resolve, reject) => {
+            const listener = (tabId, info) => {
+                if (tabId === tab.id) {
+                    if (info.status === 'complete') {
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        resolve();
+                    } else if (info.status === 'error') {
+                        chrome.tabs.onUpdated.removeListener(listener);
+                        reject(new Error('标签页加载失败'));
+                    }
+                }
+            };
+            chrome.tabs.onUpdated.addListener(listener);
+        });
+
+        // 注入邮编设置脚本
+        await chrome.scripting.executeScript({
+            target: { tabId: tab.id },
+            func: setAmazonZipCode,
+            args: [zipCode]
+        });
+
+    } catch (error) {
+        console.error('处理标签页导航失败:', error);
+    }
+}
+
+/**
+ * 在亚马逊页面设置邮编的函数
+ * @param {string} zipCode - 要设置的邮编
+ */
+function setAmazonZipCode(zipCode) {
+    // 等待元素加载的辅助函数
+    const waitForElement = (selector, timeout = 5000) => {
+        return new Promise((resolve, reject) => {
+            const start = Date.now();
+            const check = () => {
+                const el = document.querySelector(selector);
+                if (el) {
+                    resolve(el);
+                } else if (Date.now() - start > timeout) {
+                    reject(new Error(`超时未找到元素: ${selector}`));
+                } else {
+                    setTimeout(check, 100);
+                }
+            };
+            check();
+        });
+    };
+
+    // 延迟函数
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // 执行邮编设置流程
+    (async () => {
+        try {
+            // 点击位置选择器
+            const locationLink = await waitForElement('#nav-global-location-popover-link');
+            locationLink.click();
+
+            // 填写邮编
+            const zipInput = await waitForElement('#GLUXZipUpdateInput');
+            zipInput.value = zipCode;
+            // 触发输入事件，确保亚马逊能检测到值的变化
+            zipInput.dispatchEvent(new Event('input', { bubbles: true }));
+
+            // 点击更新按钮
+            const updateButton = await waitForElement('#GLUXZipUpdate input');
+            await delay(200);
+            updateButton.click();
+            await delay(1300);
+
+            // 点击完成按钮（如果存在）
+            try {
+                const doneButton = await waitForElement('[name="glowDoneButton"]', 100);
+                doneButton.click();
+            } catch (e) {
+                console.log('未找到完成按钮，可能不需要:', e);
+            }
+
+            console.log('邮编设置成功');
+        } catch (error) {
+            console.error('自动设置邮编失败:', error);
+            alert(`设置邮编时出错: ${error.message}\n您可能需要手动设置邮编`);
+        }
+    })();
+}
+
+// 监听来自content script的消息
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'setupAmazonZipCode') {
+        handleTabNavigation(message.url, message.zipCode);
+    }
+});
