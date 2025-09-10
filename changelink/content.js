@@ -84,34 +84,40 @@ function extractProductInfo() {
 }
 
 // 异步请求函数 - 通过background转发
-// 修改 content.js 中的请求参数部分
 async function triggerSyncRequest(zipCode, host, link) {
     return new Promise((resolve, reject) => {
         const requestId = Date.now();
         const userAgent = navigator.userAgent;
         const origin = `https://${host}`;
 
-        // 生成更真实的请求参数
-        const params = new URLSearchParams({
+        // 1. 构建POST请求参数（原地址设置请求）
+        const postParams = new URLSearchParams({
             actionSource: 'glow',
-            // 新增随机参数防止缓存
             'random': Math.random().toString(36).substring(2, 12)
         });
+        const postUrl = `https://${host}/portal-migration/hz/glow/address-change?${postParams.toString()}`;
 
-        const url = `https://${host}/portal-migration/hz/glow/address-change?${params.toString()}`;
-
-        // 更贴近真实的请求体
-        const json_data = {
+        const postData = {
             locationType: 'LOCATION_INPUT',
             zipCode: zipCode,
-            deviceType: 'web',
-            // 更合理的storeContext值
-            storeContext: ['apparel', 'luxury', 'kitchen', 'electronics'][Math.floor(Math.random() * 4)],
+            deviceType: 'desktop', // 修正为desktop匹配curl
+            storeContext: ['apparel', 'luxury', 'kitchen', 'electronics', 'home-garden'][Math.floor(Math.random() * 5)],
             pageType: 'Detail',
             actionSource: 'glow'
         };
 
-        // 获取浏览器的sec-ch-*等现代浏览器头信息
+        // 2. 构建GET请求参数（新增的刷新请求）
+        const getParams = new URLSearchParams({
+            triggerFeature: 'AddressList',
+            deviceType: 'desktop',
+            pageType: 'Detail',
+            storeContext: postData.storeContext, // 与POST保持一致
+            locker: '{}',
+            'random': Math.random().toString(36).substring(2, 12)
+        });
+        const getUrl = `https://${host}/portal-migration/hz/glow/condo-refresh-html?${getParams.toString()}`;
+
+        // 公共请求头（同时用于POST和GET）
         const secHeaders = {};
         if (navigator.deviceMemory) secHeaders['device-memory'] = navigator.deviceMemory;
         if (window.devicePixelRatio) secHeaders['dpr'] = window.devicePixelRatio;
@@ -120,53 +126,72 @@ async function triggerSyncRequest(zipCode, host, link) {
             secHeaders['ect'] = navigator.connection.effectiveType;
             secHeaders['rtt'] = navigator.connection.rtt;
         }
-
-        // 先解析版本
-        const chromeVersion = navigator.userAgent.match(/Chrome\/(\d+)/)[1];
-
+        const chromeVersion = navigator.userAgent.match(/Chrome\/(\d+)/)?.[1] || '140';
         const headers = {
             'accept': 'text/html,*/*',
             'accept-language': navigator.language || 'zh-CN,zh;q=0.9',
-            'content-type': 'application/json',
             'user-agent': userAgent,
             'origin': origin,
             'referer': link,
-            'dnt': '1', // 防追踪标识
+            'dnt': '1',
             'priority': 'u=1, i',
             'viewport-width': window.innerWidth,
             'x-requested-with': 'XMLHttpRequest',
             ...secHeaders,
-            // 动态生成sec-ch-ua相关头
             'sec-ch-ua': `"Chromium";v="${chromeVersion}", "Google Chrome";v="${chromeVersion}"`,
             'sec-ch-ua-mobile': navigator.userAgent.includes('Mobile') ? '?1' : '?0',
             'sec-ch-ua-platform': `"${navigator.platform}"`,
-            'sec-ch-viewport-width': window.innerWidth.toString()
+            'sec-ch-viewport-width': window.innerWidth.toString(),
+            'cache-control': 'no-cache', // 新增缓存控制
+            'pragma': 'no-cache'
         };
 
-        // 向background发送请求
+        // 3. 先发送POST请求，成功后再发送GET请求
         chrome.runtime.sendMessage({
             type: 'FETCH_REQUEST',
             id: requestId,
-            url: url,
+            url: postUrl,
             method: 'POST',
-            headers: headers,
-            body: JSON.stringify(json_data),
+            headers: { ...headers, 'content-type': 'application/json;charset=UTF-8' }, // 修正Content-Type
+            body: JSON.stringify(postData),
             userAgent: userAgent,
             referer: link
-        }, (response) => {
-            // 保持原有的回调处理逻辑
+        }, (postResponse) => {
             if (chrome.runtime.lastError) {
-                console.error('消息发送失败:', chrome.runtime.lastError);
-                reject(new Error('无法连接到后台服务'));
+                console.error('POST消息发送失败:', chrome.runtime.lastError);
+                reject(new Error('POST请求失败'));
                 return;
             }
 
-            if (response.type === 'FETCH_RESPONSE') {
-                console.log(`邮编设置成功:`, zipCode);
-                resolve(response.result);
-            } else if (response.type === 'FETCH_ERROR') {
-                console.error('请求错误:', response.error);
-                reject(new Error(response.error));
+            if (postResponse.type === 'FETCH_RESPONSE') {
+                console.log('邮编设置POST请求成功，开始发送GET刷新请求');
+                // POST成功后发起GET请求
+                chrome.runtime.sendMessage({
+                    type: 'FETCH_REQUEST',
+                    id: requestId + 1, // 避免ID冲突
+                    url: getUrl,
+                    method: 'GET', // GET请求
+                    headers: headers, // 无需Content-Type
+                    body: null, // GET无请求体
+                    userAgent: userAgent,
+                    referer: link
+                }, (getResponse) => {
+                    if (chrome.runtime.lastError) {
+                        console.error('GET消息发送失败:', chrome.runtime.lastError);
+                        reject(new Error('GET请求失败'));
+                        return;
+                    }
+                    if (getResponse.type === 'FETCH_RESPONSE') {
+                        console.log('地址刷新GET请求成功');
+                        resolve(getResponse.result); // 最终返回GET结果
+                    } else {
+                        console.error('GET请求错误:', getResponse.error);
+                        reject(new Error('GET请求错误: ' + getResponse.error));
+                    }
+                });
+            } else {
+                console.error('POST请求错误:', postResponse.error);
+                reject(new Error('POST请求错误: ' + postResponse.error));
             }
         });
     });
