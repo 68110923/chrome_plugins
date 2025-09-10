@@ -2,7 +2,6 @@
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'FETCH_REQUEST') {
         const targetUrl = message.url;
-        const urlObj = new URL(targetUrl);
 
         // 1. 从浏览器获取目标域名的所有Cookie
         chrome.cookies.getAll({url: targetUrl}, (cookies) => {
@@ -16,8 +15,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 'User-Agent': message.userAgent,  // 使用页面传递的User-Agent
                 'Accept-Language': 'en-US,en;q=0.9'  // 模拟浏览器语言设置
             };
-            console.log("headers", headers);
-            console.log("cookieStr", cookieStr);
 
             // 3. 发起带浏览器环境信息的请求
             fetch(targetUrl, {
