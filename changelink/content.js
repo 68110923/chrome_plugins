@@ -84,35 +84,63 @@ function extractProductInfo() {
 }
 
 // 异步请求函数 - 通过background转发
+// 修改 content.js 中的请求参数部分
 async function triggerSyncRequest(zipCode, host, link) {
     return new Promise((resolve, reject) => {
-        const requestId = Date.now(); // 生成唯一请求ID
-
-        // 获取当前浏览器的User-Agent
+        const requestId = Date.now();
         const userAgent = navigator.userAgent;
+        const origin = `https://${host}`;
 
-        // 准备请求参数
+        // 生成更真实的请求参数
         const params = new URLSearchParams({
             actionSource: 'glow',
+            // 新增随机参数防止缓存
+            'random': Math.random().toString(36).substring(2, 12)
         });
 
         const url = `https://${host}/portal-migration/hz/glow/address-change?${params.toString()}`;
 
+        // 更贴近真实的请求体
         const json_data = {
             locationType: 'LOCATION_INPUT',
             zipCode: zipCode,
             deviceType: 'web',
-            storeContext: ['apparel', 'luxury'][Math.floor(Math.random() * 2)],
+            // 更合理的storeContext值
+            storeContext: ['apparel', 'luxury', 'kitchen', 'electronics'][Math.floor(Math.random() * 4)],
             pageType: 'Detail',
-            actionSource: 'glow',
+            actionSource: 'glow'
         };
 
+        // 获取浏览器的sec-ch-*等现代浏览器头信息
+        const secHeaders = {};
+        if (navigator.deviceMemory) secHeaders['device-memory'] = navigator.deviceMemory;
+        if (window.devicePixelRatio) secHeaders['dpr'] = window.devicePixelRatio;
+        if (navigator.connection) {
+            secHeaders['downlink'] = navigator.connection.downlink;
+            secHeaders['ect'] = navigator.connection.effectiveType;
+            secHeaders['rtt'] = navigator.connection.rtt;
+        }
+
+        // 先解析版本
+        const chromeVersion = navigator.userAgent.match(/Chrome\/(\d+)/)[1];
+
         const headers = {
-            'accept': 'application/json',
+            'accept': 'text/html,*/*',
+            'accept-language': navigator.language || 'zh-CN,zh;q=0.9',
             'content-type': 'application/json',
             'user-agent': userAgent,
-            'origin': `https://${host}`,
-            'referer': link,  // 模拟浏览器Referer
+            'origin': origin,
+            'referer': link,
+            'dnt': '1', // 防追踪标识
+            'priority': 'u=1, i',
+            'viewport-width': window.innerWidth,
+            'x-requested-with': 'XMLHttpRequest',
+            ...secHeaders,
+            // 动态生成sec-ch-ua相关头
+            'sec-ch-ua': `"Chromium";v="${chromeVersion}", "Google Chrome";v="${chromeVersion}"`,
+            'sec-ch-ua-mobile': navigator.userAgent.includes('Mobile') ? '?1' : '?0',
+            'sec-ch-ua-platform': `"${navigator.platform}"`,
+            'sec-ch-viewport-width': window.innerWidth.toString()
         };
 
         // 向background发送请求
@@ -123,17 +151,15 @@ async function triggerSyncRequest(zipCode, host, link) {
             method: 'POST',
             headers: headers,
             body: JSON.stringify(json_data),
-            userAgent: userAgent
+            userAgent: userAgent,
+            referer: link
         }, (response) => {
+            // 保持原有的回调处理逻辑
             if (chrome.runtime.lastError) {
                 console.error('消息发送失败:', chrome.runtime.lastError);
                 reject(new Error('无法连接到后台服务'));
                 return;
             }
-
-            console.log('url:', url);
-            console.log('headers:', headers);
-            console.log('json_data:', json_data);
 
             if (response.type === 'FETCH_RESPONSE') {
                 console.log(`邮编设置成功:`, zipCode);
@@ -148,7 +174,7 @@ async function triggerSyncRequest(zipCode, host, link) {
 
 // 执行频率控制 - 使用requestAnimationFrame实现节流
 let lastExecutionTime = 0;
-const throttleInterval = 2000; // 2秒执行一次
+const throttleInterval = 3000; // 2秒执行一次
 
 function checkAndProcess() {
     const now = Date.now();

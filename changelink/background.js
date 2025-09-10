@@ -1,19 +1,30 @@
-// background.js 完整版（支持读取浏览器Cookie和自定义User-Agent）
+// 修改 background.js 中的请求头处理部分
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.type === 'FETCH_REQUEST') {
         const targetUrl = message.url;
 
-        // 1. 从浏览器获取目标域名的所有Cookie
+        // 1. 从浏览器获取目标域名的所有Cookie（包含亚马逊所需的关键Cookie）
         chrome.cookies.getAll({url: targetUrl}, (cookies) => {
-            // 格式化Cookie为请求头格式（name=value; name2=value2）
+            // 格式化Cookie为请求头格式
             const cookieStr = cookies.map(c => `${c.name}=${c.value}`).join('; ');
 
-            // 2. 构造请求头（包含浏览器Cookie、User-Agent等）
+            // 2. 构造更贴近真实的请求头
             const headers = {
                 ...message.headers,
-                'Cookie': cookieStr,  // 注入浏览器Cookie
-                'User-Agent': message.userAgent,  // 使用页面传递的User-Agent
-                'Accept-Language': 'en-US,en;q=0.9'  // 模拟浏览器语言设置
+                'Cookie': cookieStr,
+                'User-Agent': message.userAgent,
+                // 新增关键请求头
+                'Accept': 'text/html,*/*',
+                'Accept-Language': navigator.language || 'zh-CN,zh;q=0.9',
+                'Cache-Control': 'no-cache',
+                'Pragma': 'no-cache',
+                'Sec-Fetch-Dest': 'empty',
+                'Sec-Fetch-Mode': 'cors',
+                'Sec-Fetch-Site': 'same-origin',
+                'X-Requested-With': 'XMLHttpRequest',
+                // 移除可能引起问题的自定义头
+                'origin': new URL(targetUrl).origin,
+                'referer': message.referer || message.url
             };
 
             // 3. 发起带浏览器环境信息的请求
@@ -22,13 +33,45 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 headers: headers,
                 body: message.body,
                 mode: 'cors',
-                credentials: 'include'  // 保留跨域请求的凭证
+                credentials: 'include',
+                // 新增请求优先级设置
+                priority: 'high'
             })
                 .then(response => {
+                    // 处理响应Cookie并写入浏览器
+                    const setCookieHeaders = response.headers.get('set-cookie');
+                    if (setCookieHeaders) {
+                        const urlObj = new URL(targetUrl);
+                        setCookieHeaders.split(',').forEach(cookieStr => {
+                            const cookieParts = cookieStr.split(';').map(p => p.trim());
+                            const [nameValue] = cookieParts;
+                            const [name, value] = nameValue.split('=').map(decodeURIComponent);
+
+                            // 解析Cookie参数
+                            const cookieParams = {};
+                            cookieParts.slice(1).forEach(part => {
+                                const [key, val] = part.split('=');
+                                cookieParams[key.toLowerCase()] = val || true;
+                            });
+
+                            // 设置Cookie到浏览器
+                            chrome.cookies.set({
+                                url: `${urlObj.protocol}//${urlObj.host}`,
+                                name: name,
+                                value: value,
+                                domain: cookieParams.domain || urlObj.hostname,
+                                path: cookieParams.path || '/',
+                                secure: cookieParams.secure || urlObj.protocol === 'https:',
+                                httpOnly: cookieParams['httponly'] || false,
+                                expirationDate: cookieParams.expires ? new Date(cookieParams.expires).getTime() / 1000 : null,
+                                sameSite: cookieParams.samesite ? cookieParams.samesite.toLowerCase() : 'Lax'
+                            });
+                        });
+                    }
+
                     if (!response.ok) {
                         throw new Error(`HTTP错误: ${response.status}`);
                     }
-                    // 处理可能的非JSON响应（修复流重复读取问题）
                     return response.text().then(text => {
                         try {
                             return JSON.parse(text);
@@ -53,7 +96,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 });
         });
 
-        // 告知Chrome需要异步响应
         return true;
     }
 });
