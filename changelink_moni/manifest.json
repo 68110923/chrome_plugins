@@ -6,7 +6,8 @@
   "permissions": [
     "activeTab",
     "cookies",
-    "scripting"
+    "scripting",
+    "storage"
   ],
   "background": {
     "service_worker": "background.js"
@@ -44,6 +45,7 @@
     "default_icon": {
       "16": "icons/icon16.png"
     },
-    "default_title": "店小秘ASIN链接转换器"
+    "default_title": "店小秘ASIN链接转换器",
+    "default_popup": "popup.html"
   }
 }

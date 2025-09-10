@@ -7,6 +7,7 @@
  */
 async function handleTabNavigation(url, zipCode) {
     try {
+        let targetTab;
         // 检查是否已有相同URL的标签页
         const existingTabs = await new Promise(resolve =>
             chrome.tabs.query({ url }, resolve)
@@ -14,43 +15,53 @@ async function handleTabNavigation(url, zipCode) {
 
         if (existingTabs.length > 0) {
             // 激活已有标签页
-            await new Promise(resolve =>
+            targetTab = await new Promise(resolve =>
                 chrome.tabs.update(existingTabs[0].id, { active: true }, resolve)
             );
-            return;
+        } else {
+            // 创建新标签页
+            targetTab = await new Promise(resolve =>
+                chrome.tabs.create({ url }, resolve)
+            );
+            if (!targetTab) {
+                throw new Error('创建标签页失败');
+            }
         }
 
-        // 创建新标签页
-        const tab = await new Promise(resolve =>
-            chrome.tabs.create({ url }, resolve)
-        );
-
-        if (!tab) {
-            throw new Error('创建标签页失败');
-        }
-
-        // 等待标签页加载完成
-        await new Promise((resolve, reject) => {
+        // 统一等待标签页加载完成（无论新建还是激活已有）
+        await new Promise((resolve) => {
             const listener = (tabId, info) => {
-                if (tabId === tab.id) {
-                    if (info.status === 'complete') {
-                        chrome.tabs.onUpdated.removeListener(listener);
-                        resolve();
-                    } else if (info.status === 'error') {
-                        chrome.tabs.onUpdated.removeListener(listener);
-                        reject(new Error('标签页加载失败'));
-                    }
+                if (tabId === targetTab.id && info.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve();
                 }
             };
             chrome.tabs.onUpdated.addListener(listener);
+
+            // 立即检查一次状态（防止页面已经加载完成）
+            chrome.tabs.get(targetTab.id, (tab) => {
+                if (tab.status === 'complete') {
+                    chrome.tabs.onUpdated.removeListener(listener);
+                    resolve();
+                }
+            });
+
+            // 超时保护
+            setTimeout(() => {
+                chrome.tabs.onUpdated.removeListener(listener);
+                resolve(); // 即使未完全加载也继续执行
+            }, 10000);
         });
 
-        // 注入邮编设置脚本
+        // 注入邮编设置脚本（现在无论新建还是激活都能确保页面就绪）
+        console.log('准备注入邮编设置脚本到标签页:', targetTab.id);
         await chrome.scripting.executeScript({
-            target: { tabId: tab.id },
+            target: { tabId: targetTab.id },
             func: setAmazonZipCode,
-            args: [zipCode]
+            args: [zipCode],
+            world: "MAIN"
         });
+        console.log('脚本注入完成');
 
     } catch (error) {
         console.error('处理标签页导航失败:', error);
@@ -118,9 +129,17 @@ function setAmazonZipCode(zipCode) {
     })();
 }
 
-// 监听来自content script的消息
+// 修改消息监听部分
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'setupAmazonZipCode') {
         handleTabNavigation(message.url, message.zipCode);
+        sendResponse({ status: 'received' }); // 确保发送响应
+    }
+    else if (message.action === 'getZipCodeEnabled') {
+        chrome.storage.sync.get(['zipCodeEnabled'], (result) => {
+            // 明确返回默认值
+            sendResponse({ enabled: result.zipCodeEnabled !== false });
+        });
+        return true; // 保持异步响应标记
     }
 });

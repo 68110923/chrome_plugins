@@ -73,15 +73,36 @@ function extractProductInfo() {
             linkAnchor.title = `查看亚马逊${countryCode}站点商品`;
             linkAnchor.style.fontWeight = 'bold'; // 设置加粗
 
+            // 修改点击事件处理部分
             linkAnchor.addEventListener('click', (e) => {
-                if (zipCode && zipCode !== '00000') {
-                    chrome.runtime.sendMessage({
-                        action: 'setupAmazonZipCode',
-                        url: linkAnchor.href,
-                        zipCode: zipCode
-                    });
-                    e.preventDefault();
-                }
+                // 发送消息获取开关状态
+                console.log('触发点击事件')
+                chrome.runtime.sendMessage({ action: 'getZipCodeEnabled' }, (response) => {
+                    // 处理可能的通信错误
+                    console.log('开关状态:',response);
+                    if (chrome.runtime.lastError) {
+                        console.error('获取开关状态失败:', chrome.runtime.lastError);
+                        return; // 出错时使用默认行为
+                    }
+                    // 明确设置默认启用状态
+                    const isEnabled = response?.enabled !== false;
+                    if (isEnabled && zipCode && zipCode !== '00000') {
+                        chrome.runtime.sendMessage({
+                            action: 'setupAmazonZipCode',
+                            url: linkAnchor.href,
+                            zipCode: zipCode
+                        }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.error('发送设置邮编请求失败:', chrome.runtime.lastError);
+                                e.preventDefault();
+                                window.open(linkAnchor.href, '_blank'); // 失败时手动打开
+                            } else {
+                                console.log('发送设置邮编请求成功', response?.status !== false);
+                            }
+                        });
+                        e.preventDefault();
+                    }
+                });
             });
 
             const remainingText = text.replace(asin, '').trim();
@@ -120,7 +141,7 @@ function throttleProcess() {
 
 // 定时器检查（保留原有逻辑，但延长间隔）
 let isProcessing = false;
-const throttleInterval = 2500; // 延长定时器间隔到5秒
+const throttleInterval = 1000; // 延长定时器间隔到5秒
 
 function checkAndProcess() {
     if (isProcessing) return;
