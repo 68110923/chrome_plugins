@@ -136,7 +136,7 @@ async function triggerSyncRequest(zipCode, host, link) {
             console.log('json_data:', json_data);
 
             if (response.type === 'FETCH_RESPONSE') {
-                console.log('邮编设置成功:', response.result);
+                console.log(`邮编设置成功:`, zipCode);
                 resolve(response.result);
             } else if (response.type === 'FETCH_ERROR') {
                 console.error('请求错误:', response.error);
