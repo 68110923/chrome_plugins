@@ -45,7 +45,7 @@ function extractProductInfo() {
                 zipCode = zipCodeElement.textContent.split('-')[0].trim();
             }
         } catch (e) {
-            console.warn('获取邮编失败，使用默认值:', e);
+            alert('获取邮编失败！ 无法正常跳转邮编！');
         }
 
         let processedCount = 0;
