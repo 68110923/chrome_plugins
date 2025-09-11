@@ -1,0 +1,10 @@
+{
+  "name": "chrome-plugins-obfuscator",
+  "version": "1.0.0",
+  "scripts": {
+    "obfuscate": "node obfuscate.js"
+  },
+  "devDependencies": {
+    "javascript-obfuscator": "^4.1.1"
+  }
+}
