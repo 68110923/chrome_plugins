@@ -15,7 +15,7 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://www.dianxiaomi.com/order/index.htm?go=*"],
+      "matches": ["https://www.dianxiaomi.com/order/index.htm*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
