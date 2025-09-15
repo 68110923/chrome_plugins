@@ -4,8 +4,6 @@ function extractProductInfo() {
     const xpath = '//td[@class="productInfo"]//*[@class="pairProInfoSku"]';
 
     try {
-        const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
-
         const amazonMapping = {
             "US": "www.amazon.com",
             "UK": "www.amazon.co.uk",
@@ -48,12 +46,14 @@ function extractProductInfo() {
             alert('获取邮编失败！ 无法正常跳转邮编！');
         }
 
+        const result = document.evaluate(xpath, document, null, XPathResult.ORDERED_NODE_SNAPSHOT_TYPE, null);
         let processedCount = 0;
         for (let i = 0; i < result.snapshotLength; i++) {
             const element = result.snapshotItem(i);
             if (!element) continue;
 
             let text = element.textContent.trim();
+            // let text = element.outerHTML.trim();
             const asinMatch = text.match(/(B0[A-Z0-9]{8})/);
             if (!asinMatch) continue;
 
