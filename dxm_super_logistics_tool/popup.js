@@ -1,32 +1,39 @@
-// popup.js
-document.addEventListener('DOMContentLoaded', () => {
-    // 页面加载时，读取Chrome存储的API Key，填充到输入框
-    chrome.storage.sync.get(['apiKey'], (items) => {
-        if (items.apiKey) {
-            document.getElementById('apiKey').value = items.apiKey;
-        }
-    });
+// 加载保存的设置
+// 加载配置
+chrome.storage.sync.get(['username', 'password', 'concurrency_limit'], (items) => {
+    if (items.username) {
+        document.getElementById('username').value = items.username;
+    }
+    if (items.password) {
+        document.getElementById('password').value = items.password;
+    }
+    // 设置并发请求数，如果没有保存过则使用默认值15
+    document.getElementById('concurrency_limit').value = items.concurrency_limit || 15;
+});
 
-    // 点击“保存配置”按钮，将API Key存入Chrome存储
-    document.getElementById('saveBtn').addEventListener('click', () => {
-        // 获取输入框的值
-        const apiKey = document.getElementById('apiKey').value.trim();
+// 保存设置
+document.getElementById('saveBtn').addEventListener('click', () => {
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value.trim();
+    const concurrency_limit = parseInt(document.getElementById('concurrency_limit').value);
 
-        // 简单校验
-        if (!apiKey) {
-            alert('请输入GetTNShip API Key（来源：https://gettnship.com/api）');
-            return;
-        }
+    if (!username || !password) {
+        alert('请输入完整的账号和密码');
+        return;
+    }
 
-        // 存入Chrome存储
-        chrome.storage.sync.set({ apiKey }, () => {
-            // 保存成功提示（3秒后隐藏）
-            const saveSuccess = document.getElementById('saveSuccess');
-            saveSuccess.style.display = 'block';
-            setTimeout(() => {
-                saveSuccess.style.display = 'none';
-                window.close(); // 保存后自动关闭弹窗
-            }, 3000);
-        });
+    // 验证并发数在1-50之间
+    if (isNaN(concurrency_limit) || concurrency_limit < 1 || concurrency_limit > 50) {
+        alert('并发请求数必须在1到50之间');
+        return;
+    }
+
+    chrome.storage.sync.set({ username, password, concurrency_limit }, () => {
+        const saveSuccess = document.getElementById('saveSuccess');
+        saveSuccess.style.display = 'block';
+        setTimeout(() => {
+            saveSuccess.style.display = 'none';
+            window.close();
+        }, 3000);
     });
 });

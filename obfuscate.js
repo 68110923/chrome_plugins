@@ -1,13 +1,31 @@
 // 引入所需模块：文件系统操作模块、路径处理模块、JavaScript混淆库
+// node obfuscate.js changelink_moni
 const fs = require('fs');
 const path = require('path');
 const JavaScriptObfuscator = require('javascript-obfuscator');
 
-// 定义源文件夹和目标文件夹路径
-// sourceDir：需要混淆处理的源文件目录（changelink_moni）
-// targetDir：混淆处理后的文件输出目录（changelink_moni_obfuscated）
-const sourceDir = path.join(__dirname, 'changelink_moni');
-const targetDir = path.join(__dirname, 'changelink_moni_obfuscated');
+// 从命令行参数获取目标目录（支持绝对路径或相对路径）
+const inputDir = process.argv[2];
+if (!inputDir) {
+    console.error('请传入要混淆的目录路径作为参数（支持绝对路径或相对路径）');
+    process.exit(1);
+}
+
+// 解析源目录路径：如果是绝对路径则直接使用，否则视为相对于当前脚本目录的路径
+const sourceDir = path.isAbsolute(inputDir)
+    ? inputDir
+    : path.join(__dirname, inputDir);
+
+// 验证源目录是否存在
+if (!fs.existsSync(sourceDir)) {
+    console.error(`源目录不存在：${sourceDir}`);
+    process.exit(1);
+}
+
+// 目标目录名：在源目录名后加 "_obfuscated"（保持与原逻辑一致）
+const sourceDirName = path.basename(sourceDir); // 获取源目录的最后一级名称
+const targetDir = path.join(path.dirname(sourceDir), `${sourceDirName}_obfuscated`);
+
 
 // 检查并创建目标目录（如果不存在）
 // recursive: true 确保能创建多级目录
