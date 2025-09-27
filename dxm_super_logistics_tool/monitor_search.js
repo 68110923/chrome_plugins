@@ -14,7 +14,7 @@ async function initNetworkMonitor() {
     // 发送请求上传数据
     const user = await get_settings();
     let batch_order_data = {orders: orders}
-    const url = "https://43.138.130.198/drf/order/order/batch_create/";
+    const url = "http://127.0.0.1:8000/drf/order/order/batch_create/";
     const base64Credentials = btoa(`${user.username}:${user.password}`);
     await fetch(url, {
         method: 'POST',

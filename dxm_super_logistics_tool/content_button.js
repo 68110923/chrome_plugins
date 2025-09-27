@@ -128,7 +128,7 @@ async function process_orders(log_element, orders) {
 async function process_order(log_element, input_order_data, user_settings) {
     // 从后台获取快递单号等信息
     const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
-    const response_server = await fetch(`https://43.138.130.198/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
+    const response_server = await fetch(`http://127.0.0.1:8000/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json, text/plain, */*',
@@ -139,7 +139,7 @@ async function process_order(log_element, input_order_data, user_settings) {
     });
     const order_data = await response_server.json()
 
-    if (order_data.data.shipment){
+    if (order_data.data.shipment && order_data.data.shipment.tracking_number_reality) {
         let providerNames = null
         if (order_data.data.shipment.carrier === 'ups-v2'){
             providerNames = 'UPS'
@@ -148,29 +148,36 @@ async function process_order(log_element, input_order_data, user_settings) {
             order_data.error = `订单 ${order_data.data.order.order_number} 不支持 ${order_data.data.shipment.carrier} 快递`;
             return order_data;
         }
-        add_log(log_element, `订单 ${order_data.data.order.order_number} 支持 ${order_data.data.shipment.carrier} 快递，providerNames: ${providerNames}`)
-        // const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'accept': 'application/json, text/plain, */*',
-        //         'content-type': 'application/json',
-        //         'user-agent': navigator.userAgent,
-        //         'body': JSON.stringify({
-        //             'packageIds': order_data.data.order.dxm_order_number,
-        //             'tracingNumbers': order_data.data.shipment.tracking_number_reality,
-        //             'providerNames': providerNames,
-        //             'isShipStr': '1',
-        //             'trackUrls': '',
-        //             'serviceTypes': '',
-        //             'fProductCodes': '',
-        //             'fProductCodeNames': '',
-        //         })
-        //     }
-        // });
-        // if (!response.ok) {
-        //     order_data.error = `订单 ${order_data.data.order.order_number} 提交失败，状态码: ${response.status}`;
-        //     return order_data;
-        // }
+        // add_log(log_element, `订单 ${order_data.data.order.order_number} 支持 ${order_data.data.shipment.carrier} 快递，providerNames: ${providerNames}`)
+        // 构建URL编码格式的表单数据
+        const form_data = new URLSearchParams();
+        form_data.append('packageIds', order_data.data.order.dxm_order_number);
+        form_data.append('tracingNumbers', order_data.data.shipment.tracking_number_reality);
+        form_data.append('providerNames', providerNames);
+        form_data.append('isShipStr', '1');
+        form_data.append('trackUrls', '');
+        form_data.append('serviceTypes', '');
+        form_data.append('fProductCodes', '');
+        form_data.append('fProductCodeNames', '');
+
+        const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json, text/plain, */*',
+                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'user-agent': navigator.userAgent
+            },
+            body: form_data.toString(),
+            redirect: "follow"
+        });
+        const dxm_response_json = await response.json()
+        if (dxm_response_json.code === -1) {
+            order_data.error = `订单 ${order_data.data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
+        } else if (dxm_response_json.code !== 0) {
+            order_data.error = `订单 ${order_data.data.order.order_number} ，未知异常: ${dxm_response_json}`;
+        } else {
+            order_data.success = true;
+        }
     }
     return order_data
 }
@@ -273,12 +280,12 @@ function create_order_input_window() {
     const {input: order_input, input_txt: order_input_txt} = f_input(
         '订单号（多个用分隔符分隔）:',
         '例如:ORD123, ORD456; ORD789\n支持逗号、分号、空格、换行、制表符分隔',
-        // 'GSU13S20U0005UM',     // 临时测试使用的默认值
+        'GSU13B20000MKJB',     // 临时测试使用的默认值
     );
     const {input: date_input, input_txt: date_input_txt} = f_input(
         '预计到货日期（多个用分隔符分隔）:',
         '例如:2023/12/31, 2024-01-01; 2024年01月02日\n支持逗号、分号、空格、换行、制表符分隔',
-        // '2025年9月26日',     // 临时测试使用的默认值
+        '2025-09-28',     // 临时测试使用的默认值
     );
     input_window.appendChild(order_input);
     input_window.appendChild(date_input);
@@ -455,8 +462,12 @@ function add_log(element, message) {
 
 // 解析日期函数
 function parse_date(dateString) {
-    const trimmedDate = dateString.trim();
-    const match = trimmedDate.match(/^(\d{4})(?:年(\d{1,2})月(\d{1,2})日|[-/](\d{1,2})[-/](\d{1,2}))$/);
+    let str_data = dateString.replace('日', '').trim();   // 去掉日期中的“日”
+    str_data = str_data.replace(/年|月|[-/]/g, '-');  // 替换日期中的“年”、“月”、“-”或“/”为“-”
+    if (str_data.match(/^\d{1,2}-\d{1,2}$/)) {
+        str_data = `${new Date().getFullYear()}-${str_data}`
+    }
+    const match = str_data.match(/^(\d{4})(?:年(\d{1,2})月(\d{1,2})日|[-/](\d{1,2})[-/](\d{1,2}))$/);
     if (match) {
         const year = is_valid(match[1], 'year');
         const month = is_valid(match[2] || match[4], 'month');
