@@ -128,7 +128,7 @@ async function process_orders(log_element, orders) {
 async function process_order(log_element, input_order_data, user_settings) {
     // 从后台获取快递单号等信息
     const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
-    const response_server = await fetch(`http://127.0.0.1:8000/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
+    const response_server = await fetch(`https://43.138.130.198/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json, text/plain, */*',
