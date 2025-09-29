@@ -101,22 +101,22 @@ async function process_orders(log_element, orders) {
                 successful.push(order_data);
 
                 add_log(log_element, `
-                成功 订单号:${order_data.data.order.order_number} 
-                收件邮编:${order_data.data.order.shipping_zip_code} 
-                下单时间:${order_data.data.order.created_at} 
-                输入预计到货日期:${order_data.data.order.expected_delivery}  
-                快递单号:${order_data.data.shipment.tracking_number_reality}
-                快递创建时间:${order_data.data.shipment.label_created}
-                快递预计到达时间:${order_data.data.shipment.expected_delivery}
+                成功 订单号:${order_data.order.order_number} 
+                收件邮编:${order_data.order.shipping_zip_code} 
+                下单时间:${order_data.order.created_at} 
+                输入预计到货日期:${order_data.order.expected_delivery}  
+                快递单号:${order_data.shipment.tracking_number_reality}
+                快递创建时间:${order_data.shipment.label_created}
+                快递预计到达时间:${order_data.shipment.expected_delivery}
                 `);
 
             } else {
                 failed.push(order_data);
                 add_log(log_element, `
-                失败 订单号:${order_data.data.order.order_number} 
-                收件邮编:${order_data.data.order.shipping_zip_code} 
-                下单时间:${order_data.data.order.created_at} 
-                输入预计到货日期:${order_data.data.order.expected_delivery}
+                失败 订单号:${order_data.order.order_number} 
+                收件邮编:${order_data.order.shipping_zip_code} 
+                下单时间:${order_data.order.created_at} 
+                输入预计到货日期:${order_data.order.expected_delivery}
                 错误信息:${order_data.error || order_data.message}`);
             }
         });
@@ -128,7 +128,7 @@ async function process_orders(log_element, orders) {
 async function process_order(log_element, input_order_data, user_settings) {
     // 从后台获取快递单号等信息
     const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
-    const response_server = await fetch(`https://43.138.130.198/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
+    const response_server = await fetch(`${SF_ERP_URP}/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json, text/plain, */*',
@@ -139,20 +139,20 @@ async function process_order(log_element, input_order_data, user_settings) {
     });
     const order_data = await response_server.json()
 
-    if (order_data.data.shipment && order_data.data.shipment.tracking_number_reality) {
+    if (order_data.shipment && order_data.shipment.tracking_number_reality) {
         let providerNames = null
-        if (order_data.data.shipment.carrier === 'ups-v2'){
+        if (order_data.shipment.carrier === 'ups-v2'){
             providerNames = 'UPS'
         } else {
             // 其他情况，暂不支持
-            order_data.error = `订单 ${order_data.data.order.order_number} 不支持 ${order_data.data.shipment.carrier} 快递`;
+            order_data.error = `订单 ${order_data.order.order_number} 不支持 ${order_data.shipment.carrier} 快递`;
             return order_data;
         }
         // add_log(log_element, `订单 ${order_data.data.order.order_number} 支持 ${order_data.data.shipment.carrier} 快递，providerNames: ${providerNames}`)
         // 构建URL编码格式的表单数据
         const form_data = new URLSearchParams();
-        form_data.append('packageIds', order_data.data.order.dxm_order_number);
-        form_data.append('tracingNumbers', order_data.data.shipment.tracking_number_reality);
+        form_data.append('packageIds', order_data.order.dxm_order_number);
+        form_data.append('tracingNumbers', order_data.shipment.tracking_number_reality);
         form_data.append('providerNames', providerNames);
         form_data.append('isShipStr', '1');
         form_data.append('trackUrls', '');
@@ -160,24 +160,24 @@ async function process_order(log_element, input_order_data, user_settings) {
         form_data.append('fProductCodes', '');
         form_data.append('fProductCodeNames', '');
 
-        const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json, text/plain, */*',
-                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'user-agent': navigator.userAgent
-            },
-            body: form_data.toString(),
-            redirect: "follow"
-        });
-        const dxm_response_json = await response.json()
-        if (dxm_response_json.code === -1) {
-            order_data.error = `订单 ${order_data.data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
-        } else if (dxm_response_json.code !== 0) {
-            order_data.error = `订单 ${order_data.data.order.order_number} ，未知异常: ${dxm_response_json}`;
-        } else {
-            order_data.success = true;
-        }
+        // const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
+        //     method: 'POST',
+        //     headers: {
+        //         'accept': 'application/json, text/plain, */*',
+        //         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+        //         'user-agent': navigator.userAgent
+        //     },
+        //     body: form_data.toString(),
+        //     redirect: "follow"
+        // });
+        // const dxm_response_json = await response.json()
+        // if (dxm_response_json.code === -1) {
+        //     order_data.error = `订单 ${order_data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
+        // } else if (dxm_response_json.code !== 0) {
+        //     order_data.error = `订单 ${order_data.order.order_number} ，未知异常: ${dxm_response_json}`;
+        // } else {
+        //     order_data.success = true;
+        // }
     }
     return order_data
 }
@@ -280,12 +280,12 @@ function create_order_input_window() {
     const {input: order_input, input_txt: order_input_txt} = f_input(
         '订单号（多个用分隔符分隔）:',
         '例如:ORD123, ORD456; ORD789\n支持逗号、分号、空格、换行、制表符分隔',
-        'GSU13B20000MKJB',     // 临时测试使用的默认值
+        // 'GSU13B20000MKJB',     // 临时测试使用的默认值
     );
     const {input: date_input, input_txt: date_input_txt} = f_input(
         '预计到货日期（多个用分隔符分隔）:',
-        '例如:2023/12/31, 2024-01-01; 2024年01月02日\n支持逗号、分号、空格、换行、制表符分隔',
-        '2025-09-28',     // 临时测试使用的默认值
+        '例如:2023/12/31, 2024-01-01; 2024年01月02日 8月20日\n支持逗号、分号、空格、换行、制表符分隔',
+        '2025-09-30',     // 临时测试使用的默认值
     );
     input_window.appendChild(order_input);
     input_window.appendChild(date_input);
