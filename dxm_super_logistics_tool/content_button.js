@@ -160,24 +160,24 @@ async function process_order(log_element, input_order_data, user_settings) {
         form_data.append('fProductCodes', '');
         form_data.append('fProductCodeNames', '');
 
-        // const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
-        //     method: 'POST',
-        //     headers: {
-        //         'accept': 'application/json, text/plain, */*',
-        //         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-        //         'user-agent': navigator.userAgent
-        //     },
-        //     body: form_data.toString(),
-        //     redirect: "follow"
-        // });
-        // const dxm_response_json = await response.json()
-        // if (dxm_response_json.code === -1) {
-        //     order_data.error = `订单 ${order_data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
-        // } else if (dxm_response_json.code !== 0) {
-        //     order_data.error = `订单 ${order_data.order.order_number} ，未知异常: ${dxm_response_json}`;
-        // } else {
-        //     order_data.success = true;
-        // }
+        const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
+            method: 'POST',
+            headers: {
+                'accept': 'application/json, text/plain, */*',
+                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                'user-agent': navigator.userAgent
+            },
+            body: form_data.toString(),
+            redirect: "follow"
+        });
+        const dxm_response_json = await response.json()
+        if (dxm_response_json.code === -1) {
+            order_data.error = `订单 ${order_data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
+        } else if (dxm_response_json.code !== 0) {
+            order_data.error = `订单 ${order_data.order.order_number} ，未知异常: ${dxm_response_json}`;
+        } else {
+            order_data.success = true;
+        }
     }
     return order_data
 }
@@ -282,13 +282,23 @@ function create_order_input_window() {
         '例如:ORD123, ORD456; ORD789\n支持逗号、分号、空格、换行、制表符分隔',
         // 'GSU13B20000MKJB',     // 临时测试使用的默认值
     );
+
     const {input: date_input, input_txt: date_input_txt} = f_input(
         '预计到货日期（多个用分隔符分隔）:',
         '例如:2023/12/31, 2024-01-01; 2024年01月02日 8月20日\n支持逗号、分号、空格、换行、制表符分隔',
-        '2025-09-30',     // 临时测试使用的默认值
+        // '2025-09-30',     // 临时测试使用的默认值
     );
     input_window.appendChild(order_input);
     input_window.appendChild(date_input);
+
+    // 订单号自动注入
+    const temp_search_value = document.querySelector('#searchContent').value.trim()
+    if (temp_search_value) {
+        order_input_txt.value = temp_search_value.split(/[,; \n\t]+/).join("\n");
+        setTimeout(() => { date_input_txt.focus();}, 0);
+    } else {
+        setTimeout(() => { order_input_txt.focus();}, 0);
+    }
 
     //生成输入框的函数
     function f_input(label, placeholder, value='') {
@@ -377,7 +387,6 @@ function create_order_input_window() {
     button_window.appendChild(yes_btn);
 
     document.body.appendChild(overlay);
-    setTimeout(() => { order_input_txt.focus();}, 0);
     return {overlay, order_input_txt, date_input_txt, yes_btn, no_btn, use_window}
 }
 
