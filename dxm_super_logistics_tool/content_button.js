@@ -172,7 +172,7 @@ async function process_order(log_element, input_order_data, user_settings) {
         });
         const dxm_response_json = await response.json()
         if (dxm_response_json.code === -1) {
-            order_data.error = `订单 ${order_data.order.order_number} 提交失败，状态码: ${dxm_response_json.msg}`;
+            order_data.error = `订单 ${order_data.order.order_number} 提交失败: ${dxm_response_json.msg}`;
         } else if (dxm_response_json.code !== 0) {
             order_data.error = `订单 ${order_data.order.order_number} ，未知异常: ${dxm_response_json}`;
         } else {
