@@ -3,7 +3,6 @@
   "name": "店小秘一键发物流",
   "version": "1.0.0",
   "description": "为店小秘订单管理页面添加一键发物流功能",
-  "update_url": "https://43.138.130.198/chrome_plugins/",
   "permissions": [
     "activeTab",
     "storage",
