@@ -86,7 +86,7 @@ async function process_tr(tr) {
         order_number: tr.querySelector('a[class*="orderNumberSpan"]').textContent.trim(),
         created_at: `${created_at}:00`,
         shipping_zip_code: doc.getElementById('detailZip1').textContent.trim().split('-')[0],
-        status: "processing",
+        status: "pending_shipment",
     };
 }
 
