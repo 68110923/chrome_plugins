@@ -147,26 +147,26 @@ async function process_order(log_element, input_order_data, user_settings) {
     form_data.append('fProductCodes', '');
     form_data.append('fProductCodeNames', '');
 
-    // const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
-    //     method: 'POST',
-    //     headers: {
-    //         'accept': 'application/json, text/plain, */*',
-    //         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-    //         'user-agent': navigator.userAgent
-    //     },
-    //     body: form_data.toString(),
-    //     redirect: "follow"
-    // });
-    // const dxm_response_json = await response.json()
-    // if (dxm_response_json.code === -1) {
-    //     order_data.success = false;
-    //     order_data.message = `订单提交失败: ${dxm_response_json.msg}`;
-    // } else if (dxm_response_json.code !== 0) {
-    //     order_data.success = false;
-    //     order_data.message = `订单提交失败,未知错误: ${dxm_response_json.msg}`;
-    // } else {
-    //     order_data.success = true;
-    // }
+    const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
+        method: 'POST',
+        headers: {
+            'accept': 'application/json, text/plain, */*',
+            'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+            'user-agent': navigator.userAgent
+        },
+        body: form_data.toString(),
+        redirect: "follow"
+    });
+    const dxm_response_json = await response.json()
+    if (dxm_response_json.code === -1) {
+        order_data.success = false;
+        order_data.message = `订单提交失败: ${dxm_response_json.msg}`;
+    } else if (dxm_response_json.code !== 0) {
+        order_data.success = false;
+        order_data.message = `订单提交失败,未知错误: ${dxm_response_json.msg}`;
+    } else {
+        order_data.success = true;
+    }
     if (order_data.success) {
         add_log(log_element, `成功 ${order_data.order.order_number}`);
     } else {
