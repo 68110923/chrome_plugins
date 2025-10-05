@@ -56,25 +56,35 @@ async function open_order_input_window() {
 
     document.body.removeChild(overlay);
     // 创建日志浮窗，用于显示处理过程中的日志信息
-    const log_window = create_log_window();
-    const log_element = log_window.querySelector('.log-content');
+    const log_window_obj = create_log_window();
+    const log_element = log_window_obj.content;
     add_log(log_element, `开始提交订单处理...`);
-    const result = await process_orders(log_element, order_input);
-    add_log(log_element, `所有订单处理完毕！ ${result.successful.length} 个成功，${result.failed.length} 个失败`);
+    const result = await process_orders(log_element, order_input, log_window_obj.progress);
+    add_log(log_element, `所有订单处理完毕！ ${result.filter(order => order.success).length} 个成功，${result.filter(order => !order.success).length} 个失败`);
+    
+    // 生成CSV文件并自动下载
+    generate_csv_and_download(result, log_element);
 }
 
 // 处理订单main逻辑
-async function process_orders(log_element, orders) {
-    const successful = [];
-    const failed = [];
-    
+async function process_orders(log_element, orders, progress = null) {
+    const all_results = [];
     // 获取并发数配置
     const user_settings = await get_settings();
     const concurrency_limit = parseInt(user_settings.concurrency_limit) || 15;
     
     // 将订单转换为数组，方便分批次处理
     const input_order_values = Object.values(orders);
-    add_log(log_element, `共 ${input_order_values.length} 个订单需要处理，将使用 ${concurrency_limit} 个并发进行处理`);
+    const total_orders = input_order_values.length;
+    let processed_count = 0;
+    
+    add_log(log_element, `共 ${total_orders} 个订单需要处理，速度 ${concurrency_limit} `);
+    
+    // 初始化进度条
+    if (progress) {
+        progress.container.style.display = 'block';
+        update_progress(progress, processed_count, total_orders);
+    }
     
     // 分批次并行处理订单
     for (let i = 0; i < input_order_values.length; i += concurrency_limit) {
@@ -83,45 +93,15 @@ async function process_orders(log_element, orders) {
             return await process_order(log_element, input_order_data, user_settings);
         });
         const batch_results = await Promise.all(batchPromises);
-        batch_results.forEach(order_data => {
-            //验证订单数据和用户名
-            const error_data = {  successful: [], failed: [] }
-            if (order_data.detail === "用户名或者密码错误。") {
-                error_data.error = order_data.detail
-                alert(error_data.error);
-                return error_data;
-            } else if (order_data.error) {
-                error_data.error = order_data.error;
-                alert(error_data.error);
-                return error_data;
-            }
-
-
-            if (order_data.success) {
-                successful.push(order_data);
-
-                add_log(log_element, `
-                成功 订单号:${order_data.order.order_number} 
-                收件邮编:${order_data.order.shipping_zip_code} 
-                下单时间:${order_data.order.created_at} 
-                输入预计到货日期:${order_data.order.expected_delivery}  
-                快递单号:${order_data.shipment.tracking_number_reality}
-                快递创建时间:${order_data.shipment.label_created}
-                快递预计到达时间:${order_data.shipment.expected_delivery}
-                `);
-
-            } else {
-                failed.push(order_data);
-                add_log(log_element, `
-                失败 订单号:${order_data.order.order_number} 
-                收件邮编:${order_data.order.shipping_zip_code} 
-                下单时间:${order_data.order.created_at} 
-                输入预计到货日期:${order_data.order.expected_delivery}
-                错误信息:${order_data.error || order_data.message}`);
-            }
-        });
+        all_results.push(...batch_results);
+        processed_count += batch_results.length;
+        
+        // 更新进度条
+        if (progress) {
+            update_progress(progress, processed_count, total_orders);
+        }
     }
-    return { successful, failed };
+    return all_results;
 }
 
 // 单条订单处理，从后台获取快递单号等信息，提交到店小秘
@@ -139,47 +119,134 @@ async function process_order(log_element, input_order_data, user_settings) {
     });
     const order_data = await response_server.json()
 
-    if (order_data.shipment && order_data.shipment.tracking_number_reality) {
-        let providerNames = null
-        if (order_data.shipment.carrier === 'ups-v2'){
-            providerNames = 'UPS'
-        } else {
-            // 其他情况，暂不支持
-            order_data.error = `订单 ${order_data.order.order_number} 不支持 ${order_data.shipment.carrier} 快递`;
-            return order_data;
-        }
-        // add_log(log_element, `订单 ${order_data.data.order.order_number} 支持 ${order_data.data.shipment.carrier} 快递，providerNames: ${providerNames}`)
-        // 构建URL编码格式的表单数据
-        const form_data = new URLSearchParams();
-        form_data.append('packageIds', order_data.order.dxm_order_number);
-        form_data.append('tracingNumbers', order_data.shipment.tracking_number_reality);
-        form_data.append('providerNames', providerNames);
-        form_data.append('isShipStr', '1');
-        form_data.append('trackUrls', '');
-        form_data.append('serviceTypes', '');
-        form_data.append('fProductCodes', '');
-        form_data.append('fProductCodeNames', '');
+    if (!order_data.shipment || !order_data.shipment.tracking_number_reality) {
+        order_data.success = false;
+        order_data.message = `未匹配到快递单号`;
+        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
+        return order_data;
+    }
 
-        const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
-            method: 'POST',
-            headers: {
-                'accept': 'application/json, text/plain, */*',
-                'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-                'user-agent': navigator.userAgent
-            },
-            body: form_data.toString(),
-            redirect: "follow"
-        });
-        const dxm_response_json = await response.json()
-        if (dxm_response_json.code === -1) {
-            order_data.error = `订单 ${order_data.order.order_number} 提交失败: ${dxm_response_json.msg}`;
-        } else if (dxm_response_json.code !== 0) {
-            order_data.error = `订单 ${order_data.order.order_number} ，未知异常: ${dxm_response_json}`;
-        } else {
-            order_data.success = true;
-        }
+    let providerNames = null
+    if (order_data.shipment.carrier === 'ups-v2'){
+        providerNames = 'UPS'
+    } else {
+        // 其他情况，暂不支持
+        order_data.success = false;
+        order_data.message = `订单不支持 ${order_data.shipment.carrier} 快递`;
+        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
+        return order_data;
+    }
+    // 构建URL编码格式的表单数据
+    const form_data = new URLSearchParams();
+    form_data.append('packageIds', order_data.order.dxm_order_number);
+    form_data.append('tracingNumbers', order_data.shipment.tracking_number_reality);
+    form_data.append('providerNames', providerNames);
+    form_data.append('isShipStr', '1');
+    form_data.append('trackUrls', '');
+    form_data.append('serviceTypes', '');
+    form_data.append('fProductCodes', '');
+    form_data.append('fProductCodeNames', '');
+
+    // const response = await fetch(`https://www.dianxiaomi.com/package/withOutPrintShip.json`, {
+    //     method: 'POST',
+    //     headers: {
+    //         'accept': 'application/json, text/plain, */*',
+    //         'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+    //         'user-agent': navigator.userAgent
+    //     },
+    //     body: form_data.toString(),
+    //     redirect: "follow"
+    // });
+    // const dxm_response_json = await response.json()
+    // if (dxm_response_json.code === -1) {
+    //     order_data.success = false;
+    //     order_data.message = `订单提交失败: ${dxm_response_json.msg}`;
+    // } else if (dxm_response_json.code !== 0) {
+    //     order_data.success = false;
+    //     order_data.message = `订单提交失败,未知错误: ${dxm_response_json.msg}`;
+    // } else {
+    //     order_data.success = true;
+    // }
+    if (order_data.success) {
+        add_log(log_element, `成功 ${order_data.order.order_number}`);
+    } else {
+        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
     }
     return order_data
+}
+
+// 生成CSV文件并自动下载
+function generate_csv_and_download(results, log_element) {
+    try {
+        // CSV头部
+        const headers = [
+            '订单号',
+            '状态',
+            '收件邮编',
+            '下单时间',
+            '预计到货日期',
+            '快递单号',
+            '快递创建时间',
+            '快递预计到达时间',
+            '错误信息'
+        ];
+        
+        // CSV数据行
+        const rows = results.map(order => {
+            const order_data = order.order || {};
+            const shipment = order.shipment || {};
+            
+            return [
+                order_data.order_number || '',
+                order.success ? '成功' : '失败',
+                order_data.shipping_zip_code || '',
+                order_data.created_at || '',
+                order_data.expected_delivery || '',
+                shipment.tracking_number_reality || '',
+                shipment.label_created || '',
+                shipment.expected_delivery || '',
+                order.error || order.message || ''
+            ];
+        });
+        
+        // 组合CSV内容
+        const csv_content = [
+            headers.join(','),
+            ...rows.map(row => row.map(field => {
+                // 处理字段中的逗号和引号
+                const field_str = String(field || '');
+                if (field_str.includes(',') || field_str.includes('"') || field_str.includes('\n')) {
+                    return '"' + field_str.replace(/"/g, '""') + '"';
+                }
+                return field_str;
+            }).join(','))
+        ].join('\n');
+        
+        // 创建Blob对象
+        const blob = new Blob(['\ufeff' + csv_content], { 
+            type: 'text/csv;charset=utf-8;' 
+        });
+        
+        // 创建下载链接
+        const link = document.createElement('a');
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', `订单处理结果_${new Date().toISOString().slice(0, 10)}_${Date.now()}.csv`);
+        link.style.visibility = 'hidden';
+        
+        // 触发下载
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // 释放URL对象
+        URL.revokeObjectURL(url);
+        
+        add_log(log_element, `CSV文件已生成并下载完成`);
+    } catch (error) {
+        add_log(log_element, `生成CSV文件失败: ${error.message}`);
+        console.error('CSV生成错误:', error);
+    }
 }
 
 // 解析输入的内容
@@ -444,22 +511,75 @@ function create_log_window() {
 
     title.appendChild(closeBtn);
 
+    // 进度条容器
+    const progressContainer = document.createElement('div');
+    progressContainer.className = 'progress-container';
+    progressContainer.style.cssText = `
+        padding: 10px 15px;
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+        display: none; /* 初始隐藏 */
+    `;
+    
+    const progressLabel = document.createElement('div');
+    progressLabel.style.cssText = `
+        font-size: 12px;
+        color: #666;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+    `;
+    progressLabel.innerHTML = '<span>处理进度</span><span class="progress-text">0/0 (0%)</span>';
+    
+    const progressBar = document.createElement('div');
+    progressBar.style.cssText = `
+        width: 100%;
+        height: 8px;
+        background-color: #e9ecef;
+        border-radius: 4px;
+        overflow: hidden;
+    `;
+    
+    const progressFill = document.createElement('div');
+    progressFill.style.cssText = `
+        height: 100%;
+        background-color: #4CAF50;
+        width: 0%;
+        transition: width 0.5s ease-in-out;
+        background-image: linear-gradient(45deg, rgba(255, 255, 255, .15) 25%, transparent 25%, transparent 50%, rgba(255, 255, 255, .15) 50%, rgba(255, 255, 255, .15) 75%, transparent 75%, transparent);
+        background-size: 1rem 1rem;
+    `;
+    
+    progressBar.appendChild(progressFill);
+    progressContainer.appendChild(progressLabel);
+    progressContainer.appendChild(progressBar);
+
     const logContent = document.createElement('div');
     logContent.className = 'log-content';
     logContent.style.cssText = `
         padding: 15px;
-        height: 300px;
+        height: 250px;
         overflow-y: auto;
         font-family: monospace;
         white-space: pre-wrap;
     `;
 
     logWindow.appendChild(title);
+    logWindow.appendChild(progressContainer);
     logWindow.appendChild(logContent);
     overlay.appendChild(logWindow);
     document.body.appendChild(overlay);
 
-    return logWindow;
+    // 返回包含进度条元素的对象，方便后续更新
+    return { 
+        window: logWindow, 
+        content: logContent,
+        progress: {
+            container: progressContainer,
+            label: progressLabel.querySelector('.progress-text'),
+            fill: progressFill
+        }
+    };
 }
 
 // 添加日志内容
@@ -467,6 +587,18 @@ function add_log(element, message) {
     const timestamp = new Date().toLocaleTimeString();
     element.textContent += `[${timestamp}] ${message}\n`;
     element.scrollTop = element.scrollHeight; // 自动滚动到底部
+}
+
+// 更新进度条
+function update_progress(progress, current, total) {
+    const percentage = total > 0 ? Math.round((current / total) * 100) : 0;
+    progress.label.textContent = `${current}/${total} (${percentage}%)`;
+    progress.fill.style.width = `${percentage}%`;
+    
+    // 当进度完成时，改变进度条颜色为绿色
+    if (percentage === 100) {
+        progress.fill.style.backgroundColor = '#28a745';
+    }
 }
 
 // 解析日期函数
