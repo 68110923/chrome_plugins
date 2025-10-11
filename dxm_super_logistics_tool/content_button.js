@@ -108,7 +108,7 @@ async function process_orders(log_element, orders, progress = null) {
 async function process_order(log_element, input_order_data, user_settings) {
     // 从后台获取快递单号等信息
     const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
-    const response_server = await fetch(`${SF_ERP_URL}/drf/order/tracking_numbers/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
+    const response_server = await fetch(`${SF_ERP_URL}/drf/spider/shipment-pre-dxm/buy_b_express/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
         method: 'GET',
         headers: {
             'accept': 'application/json, text/plain, */*',
@@ -119,9 +119,7 @@ async function process_order(log_element, input_order_data, user_settings) {
     });
     const order_data = await response_server.json()
 
-    if (!order_data.shipment || !order_data.shipment.tracking_number_reality) {
-        order_data.success = false;
-        order_data.message = `未匹配到快递单号`;
+    if (!order_data.success) {
         add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
         return order_data;
     }
@@ -167,11 +165,8 @@ async function process_order(log_element, input_order_data, user_settings) {
     } else {
         order_data.success = true;
     }
-    if (order_data.success) {
-        add_log(log_element, `成功 ${order_data.order.order_number}`);
-    } else {
-        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
-    }
+
+    add_log(log_element, `success:${order_data.success} ${order_data.order.order_number}  ${order_data.success ? '' : order_data.message}`);
     return order_data
 }
 

@@ -13,8 +13,7 @@ async function initNetworkMonitor() {
     let orders = await parsePageData();
     // 发送请求上传数据
     const user = await get_settings();
-    let batch_order_data = {orders: orders}
-    const url = `${SF_ERP_URL}/drf/order/order/batch_create/`;
+    const url = `${SF_ERP_URL}/drf/spider/shipment-pre-dxm/bulk_create/`;
     const base64Credentials = btoa(`${user.username}:${user.password}`);
     await fetch(url, {
         method: 'POST',
@@ -23,7 +22,7 @@ async function initNetworkMonitor() {
             "Content-Type": "application/json",
             "Authorization": `Basic ${base64Credentials}`,
         },
-        body: JSON.stringify(batch_order_data),
+        body: JSON.stringify(orders),
         credentials: 'include' // 包含跨域请求的cookie
     }).then(response => {
         // 无论状态码如何，先尝试解析 JSON
@@ -35,7 +34,7 @@ async function initNetworkMonitor() {
         // 这里可以获取到所有状态码的响应内容
         if (status === 401 || status === 403) {
             showNotification(`检测到 ${orders.length} 条订单， ${data.detail}`);
-        }else if (status === 207) {
+        }else if (status >= 200 && status < 300) {
             showNotification(`检测到 ${orders.length} 条订单`);
         }else {
             showNotification(`检测到 ${orders.length} 条订单，出现未知错误`);
@@ -84,9 +83,9 @@ async function process_tr(tr) {
     return {
         dxm_order_number: dxm_id,
         order_number: tr.querySelector('a[class*="orderNumberSpan"]').textContent.trim(),
-        created_at: `${created_at}:00`,
+        order_created_at: `${created_at}:00`,
         shipping_zip_code: doc.getElementById('detailZip1').textContent.trim().split('-')[0],
-        status: "pending_shipment",
+        status: 0,
     };
 }
 
