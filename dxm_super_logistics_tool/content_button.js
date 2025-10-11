@@ -93,37 +93,24 @@ async function process_orders(log_element, orders, progress = null) {
             return await process_order(log_element, input_order_data, user_settings);
         });
         const batch_results = await Promise.all(batchPromises);
-        all_results.push(...batch_results);
-        processed_count += batch_results.length;
-        
-        // 更新进度条
-        if (progress) {
-            update_progress(progress, processed_count, total_orders);
+
+        for (const order_data_i of batch_results) {
+            const order_data = await post_dxm(order_data_i);
+            add_log(log_element, `${order_data.success} ${order_data.order ? order_data.order.order_number : 'N/A'}  ${order_data.success ? '' : order_data.message}`);
+            all_results.push(order_data);
+            processed_count++;
+            if (progress) {
+                update_progress(progress, processed_count, total_orders);
+            }
         }
     }
     return all_results;
 }
 
-// 单条订单处理，从后台获取快递单号等信息，提交到店小秘
-async function process_order(log_element, input_order_data, user_settings) {
-    // 从后台获取快递单号等信息
-    const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
-    const response_server = await fetch(`${SF_ERP_URL}/drf/spider/shipment-pre-dxm/buy_b_express/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
-        method: 'GET',
-        headers: {
-            'accept': 'application/json, text/plain, */*',
-            'content-type': 'application/json',
-            'user-agent': navigator.userAgent,
-            'authorization': `Basic ${base64Credentials}`,
-        }
-    });
-    const order_data = await response_server.json()
-
+async function post_dxm(order_data) {
     if (!order_data.success) {
-        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
         return order_data;
     }
-
     let providerNames = null
     if (order_data.shipment.carrier === 'ups-v2'){
         providerNames = 'UPS'
@@ -131,7 +118,6 @@ async function process_order(log_element, input_order_data, user_settings) {
         // 其他情况，暂不支持
         order_data.success = false;
         order_data.message = `订单不支持 ${order_data.shipment.carrier} 快递`;
-        add_log(log_element, `失败 ${order_data.order.order_number} ${order_data.message}`);
         return order_data;
     }
     // 构建URL编码格式的表单数据
@@ -165,8 +151,22 @@ async function process_order(log_element, input_order_data, user_settings) {
     } else {
         order_data.success = true;
     }
-
-    add_log(log_element, `success:${order_data.success} ${order_data.order.order_number}  ${order_data.success ? '' : order_data.message}`);
+    return order_data
+}
+// 单条订单处理，从后台获取快递单号等信息，提交到店小秘
+async function process_order(log_element, input_order_data, user_settings) {
+    // 从后台获取快递单号等信息
+    const base64Credentials = btoa(`${user_settings.username}:${user_settings.password}`);
+    const response_server = await fetch(`${SF_ERP_URL}/drf/spider/shipment-pre-dxm/buy_b_express/?order_number=${input_order_data.order_number}&expected_delivery=${input_order_data.expected_delivery}`, {
+        method: 'GET',
+        headers: {
+            'accept': 'application/json, text/plain, */*',
+            'content-type': 'application/json',
+            'user-agent': navigator.userAgent,
+            'authorization': `Basic ${base64Credentials}`,
+        }
+    });
+    const order_data = await response_server.json()
     return order_data
 }
 
@@ -195,7 +195,7 @@ function generate_csv_and_download(results, log_element) {
                 order_data.order_number || '',
                 order.success ? '成功' : '失败',
                 order_data.shipping_zip_code || '',
-                order_data.created_at || '',
+                order_data.order_created_at || '',
                 order_data.expected_delivery || '',
                 shipment.tracking_number_reality || '',
                 shipment.label_created || '',
