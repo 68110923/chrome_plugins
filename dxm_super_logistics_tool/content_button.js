@@ -166,8 +166,7 @@ async function process_order(log_element, input_order_data, user_settings) {
             'authorization': `Basic ${base64Credentials}`,
         }
     });
-    const order_data = await response_server.json()
-    return order_data
+    return await response_server.json()
 }
 
 // 生成CSV文件并自动下载
@@ -176,6 +175,7 @@ function generate_csv_and_download(results, log_element) {
         // CSV头部
         const headers = [
             '订单号',
+            '输入的日期',
             '状态',
             '收件邮编',
             '下单时间',
@@ -193,6 +193,7 @@ function generate_csv_and_download(results, log_element) {
             
             return [
                 order_data.order_number || '',
+                order_data.expected_delivery ? new Intl.DateTimeFormat('zh-CN', { month: 'long', day: 'numeric' }).format(new Date(order_data.expected_delivery)) : '',
                 order.success ? '成功' : '失败',
                 order_data.shipping_zip_code || '',
                 order_data.order_created_at || '',
