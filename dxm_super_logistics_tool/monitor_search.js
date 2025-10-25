@@ -50,9 +50,9 @@ async function parsePageData() {
     const all_tr_list = Array.from(all_tr);
     const orders = [];
     
-    // 从设置中获取并发数，默认为15
-    const userSettings = await get_settings();
-    const concurrency_limit = parseInt(userSettings.concurrency_limit) || 15;
+    // 从设置中获取并发数，默认为100
+    // const userSettings = await get_settings();
+    const concurrency_limit = 100;
     for (let i = 0; i < all_tr_list.length; i += concurrency_limit) {
         // 截取当前批次的tr元素
         const batch = all_tr_list.slice(i, i + concurrency_limit);
