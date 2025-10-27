@@ -29,10 +29,9 @@ async function open_order_input_window() {
         // 确认按钮事件
         const yes_btn_click = () => {
             const all_order_input = order_input_txt.value.trim();
-            const all_date_input = date_input_txt.value.trim();
 
-            if (!all_order_input || !all_date_input) {alert('订单号和日期输入框都不能为空');return;}
-            const temp_orders = parse_input_zip(all_order_input, all_date_input);
+            if (!all_order_input) {alert('输入框不能为空');return;}
+            const temp_orders = parse_input_zip(all_order_input);
             if (temp_orders.error) {alert(temp_orders.error);return;}
             // 二次确认对话框，让用户确认是否继续操作
             const orders_length = Object.keys(temp_orders.orders).length
@@ -107,7 +106,7 @@ async function process_orders(log_element, orders, progress = null) {
     return all_results;
 }
 
-async function post_dxm(order_data) {
+async function post_dxm(order_data, retry_count = 0, max_retries = 15) {
     if (!order_data.success) {
         return order_data;
     }
@@ -143,8 +142,19 @@ async function post_dxm(order_data) {
     });
     const dxm_response_json = await response.json()
     if (dxm_response_json.code === -1) {
-        order_data.success = false;
-        order_data.message = `订单提交失败: ${dxm_response_json.msg}`;
+        if (dxm_response_json.msg.includes('正在执行移入运单号申请操作，请执行完操作后再重试！')) {
+            // 等待1秒后重试
+            if (retry_count < max_retries) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                return await post_dxm(order_data, retry_count + 1, max_retries);
+            } else {
+                order_data.success = false;
+                order_data.message = `订单提交失败, 超过最大重试次数: ${dxm_response_json.msg}`;
+            }
+        } else {
+            order_data.success = false;
+            order_data.message = `订单提交失败: ${dxm_response_json.msg}`;
+        }
     } else if (dxm_response_json.code !== 0) {
         order_data.success = false;
         order_data.message = `订单提交失败,未知错误: ${dxm_response_json.msg}`;
@@ -246,23 +256,28 @@ function generate_csv_and_download(results, log_element) {
 }
 
 // 解析输入的内容
-function parse_input_zip(all_order_input, all_date_input) {
+function parse_input_zip(all_order_input) {
     try {
         // 使用正则表达式分割订单号，支持逗号、分号、空格、换行、制表符，多个分隔符视为一个
-        const orderIds = all_order_input
-            .split(/[,; \n\t]+/)
-            .map(id => id.trim())
-            .filter(id => id);
+        const orderIds = [];
+        const dateStrs = [];
+        all_order_input.split(/[\n]+/)  // 按换行符拆分成行数组
+            .map(line => line.trim())  // 去除每行首尾空格
+            .filter(line => line)  // 过滤空行
+            .forEach(line => {
+                // 按制表符 \t 拆分当前行（订单号和日期）
+                const [orderId, dateStr] = line.split('\t');
+                // 存入对应列表（注意：需判断拆分结果是否有效，避免 undefined）
+                if (orderId && dateStr) {
+                    orderIds.push(orderId);
+                    dateStrs.push(dateStr);
+                }
+            });
+
 
         if (orderIds.length === 0) {
             return { error: '未找到有效的订单号，请检查输入' };
         }
-
-        // 使用正则表达式分割日期，支持相同的分隔符
-        const dateStrs = all_date_input
-            .split(/[,; \n\t]+/)
-            .map(date => date.trim())
-            .filter(date => date);
 
         if (dateStrs.length === 0) {
             return { error: '未找到有效的日期，请检查输入' };
@@ -341,8 +356,10 @@ function create_order_input_window() {
     `;
     use_window.appendChild(input_window);
     const {input: order_input, input_txt: order_input_txt} = f_input(
-        '订单号（多个用分隔符分隔）:',
-        '例如:ORD123, ORD456; ORD789\n支持逗号、分号、空格、换行、制表符分隔',
+        '订单号和预计到货日期:',
+        '例如:\nGSU148531002CCW\t10月26日\n' +
+        'GSU148361000RE1\t10月26日\n' +
+        'GSU148491000JNC\t10月26日',
         // 'GSU13B20000MKJB',     // 临时测试使用的默认值
     );
 
@@ -352,16 +369,16 @@ function create_order_input_window() {
         // '2025-09-30',     // 临时测试使用的默认值
     );
     input_window.appendChild(order_input);
-    input_window.appendChild(date_input);
+    // input_window.appendChild(date_input);
 
     // 订单号自动注入
-    const temp_search_value = document.querySelector('#searchContent').value.trim()
-    if (temp_search_value) {
-        order_input_txt.value = temp_search_value.split(/[,; \n\t]+/).join("\n");
-        setTimeout(() => { date_input_txt.focus();}, 0);
-    } else {
-        setTimeout(() => { order_input_txt.focus();}, 0);
-    }
+    // const temp_search_value = document.querySelector('#searchContent').value.trim()
+    // if (temp_search_value) {
+    //     order_input_txt.value = temp_search_value.split(/[,; \n\t]+/).join("\n");
+    //     setTimeout(() => { date_input_txt.focus();}, 0);
+    // } else {
+    //     setTimeout(() => { order_input_txt.focus();}, 0);
+    // }
 
     //生成输入框的函数
     function f_input(label, placeholder, value='') {
