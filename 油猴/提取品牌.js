@@ -1,12 +1,14 @@
 // ==UserScript==
-// @name         店小秘手动提取品牌词
+// @name         提取品牌词 - 店小秘 - 产品 - shein采集想
 // @namespace    http://tampermonkey.net/
 // @version      1.1
-// @description  点击按钮提取.white-space元素的第一个单词并复制
+// @description  点击按钮提取标题中的品牌词并复制
 // @author       刘根生
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
+// @downloadURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.js
+// @updateURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.js
 // ==/UserScript==
 
 // 注入按钮和文本框的样式
@@ -54,7 +56,7 @@ GM_addStyle(`
         // 查找元素
         const elements = document.querySelectorAll('.white-space');
         if (elements.length === 0) {
-            alert('未找到标题元素，请确认页面已加载完成');
+            alert('未找到.white-space元素，请确认页面已加载完成');
             return;
         }
 
