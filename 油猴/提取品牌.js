@@ -83,7 +83,7 @@ GM_addStyle(`
         textarea.select();
         document.execCommand('copy');
 
-        alert(`已提取${uniqueWords.length}个品牌词，已复制到剪贴板`);
+        alert(`已提取 ${uniqueWords.length} 个品牌词，已复制到剪贴板`);
     }
 
     // 页面加载完成后添加按钮（避免过早注入）
