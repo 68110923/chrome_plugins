@@ -1,10 +1,10 @@
 // ==UserScript==
 // @name         提取品牌词 - 店小秘 - 产品 - shein采集想
 // @namespace    http://tampermonkey.net/
-// @version      1.5.3
+// @version      1.5.4
 // @description  点击按钮提取标题中的品牌词并复制
 // @author       刘根生
-// @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
+// @match        https://www.dianxiaomi.com/web/sheinProduct/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js
@@ -47,7 +47,7 @@ GM_addStyle(`
     function addExtractButton() {
         const btn = document.createElement('button');
         btn.className = 'extract-btn';
-        btn.textContent = '品牌词 - 1.5.3';
+        btn.textContent = '品牌词 - 1.5.4';
         btn.onclick = runExtract; // 点击按钮时执行提取逻辑
         document.body.appendChild(btn);
     }
