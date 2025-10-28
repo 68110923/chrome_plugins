@@ -7,8 +7,8 @@
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/blob/main/plugins_yh/extract_brand_words.user.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/blob/main/plugins_yh/extract_brand_words.user.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js
 // ==/UserScript==
 
 
