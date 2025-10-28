@@ -1,14 +1,14 @@
 // ==UserScript==
 // @name         提取品牌词 - 店小秘 - 产品 - shein采集想
 // @namespace    http://tampermonkey.net/
-// @version      1.2
+// @version      1.3
 // @description  点击按钮提取标题中的品牌词并复制
 // @author       刘根生
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
-// @downloadURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.js
-// @updateURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.js
+// @downloadURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.user.js
+// @updateURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.user.js
 // ==/UserScript==
 
 // 注入按钮和文本框的样式
