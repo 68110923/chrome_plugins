@@ -7,9 +7,10 @@
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
-// @downloadURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.user.js
-// @updateURL https://github.com/68110923/chrome_plugins/blob/main/%E6%B2%B9%E7%8C%B4/%E6%8F%90%E5%8F%96%E5%93%81%E7%89%8C.user.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/blob/main/plugins_yh/extract_brand_words.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/blob/main/plugins_yh/extract_brand_words.user.js
 // ==/UserScript==
+
 
 // 注入按钮和文本框的样式
 GM_addStyle(`
