@@ -4,6 +4,8 @@
  * @param {number} position - 插入位置（0：第一个，-1：最后一个，其他数字：对应索引）
  * @param {string} html - 要插入的HTML字符串（可包含class、onclick等属性）
  * @returns {HTMLElement|null} 插入的元素（失败返回null）
+ * 用法：
+ * insertHtmlToXPath('//div[@id="container"]', 0, '<button class="extract-btn" onclick="extractBrandWords()">提取品牌</button>');
  */
 function insertHtmlToXPath(xpath, position, html) {
     try {
@@ -50,3 +52,4 @@ function insertHtmlToXPath(xpath, position, html) {
         return null;
     }
 }
+
