@@ -1,9 +1,9 @@
 // ==UserScript==
 // @name         提取品牌词 - 店小秘 - 产品shein
 // @namespace    http://tampermonkey.net/
-// @version      1.5.6
+// @version      1.5.7
 // @description  点击按钮提取标题中的品牌词并复制
-// @author       刘根生
+// @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
 // @match        https://www.dianxiaomi.com/web/sheinProduct/online*
 // @match        https://www.dianxiaomi.com/web/sheinProduct/offline*
