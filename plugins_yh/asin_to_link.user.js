@@ -9,8 +9,8 @@
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh_obfuscated/asin_to_link.user.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh_obfuscated/asin_to_link.user.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js
 // ==/UserScript==
 
 
