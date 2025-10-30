@@ -1,5 +1,5 @@
 // 引入所需模块：文件系统操作模块、路径处理模块、JavaScript混淆库
-// node obfuscate.js dxm_super_logistics_tool
+// node obfuscate.js plugins_yh
 const fs = require('fs');
 const path = require('path');
 const JavaScriptObfuscator = require('javascript-obfuscator');

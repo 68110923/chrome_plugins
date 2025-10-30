@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ASIN->链接 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  把ASIN转换为链接
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -9,8 +9,8 @@
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh_obfuscated/asin_to_link.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh_obfuscated/asin_to_link.user.js
 // ==/UserScript==
 
 
