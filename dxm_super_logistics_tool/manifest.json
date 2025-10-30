@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
   "name": "店小秘一键发物流",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "为店小秘订单管理页面添加一键发物流功能",
   "permissions": [
+    "cookies",
     "activeTab",
     "storage",
     "scripting",
@@ -11,7 +12,7 @@
     "webRequestBlocking"
   ],
   "host_permissions": [
-    "http://*/*",
+    "https://www.dianxiaomi.com/*",
     "https://*/*"
   ],
   "action": {
@@ -23,7 +24,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://www.dianxiaomi.com/order/index.htm?go=m101"
+        "https://www.dianxiaomi.com/web/order/approved*"
       ],
       "js": [
         "content_button.js",

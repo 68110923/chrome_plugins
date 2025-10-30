@@ -46,7 +46,7 @@ async function initNetworkMonitor() {
 
 // 解析页面订单数据
 async function parsePageData() {
-    const all_tr = document.documentElement.querySelectorAll('tr[class^="orderId_"]');
+    const all_tr = document.documentElement.querySelectorAll('tr.vxe-body--row[class="vxe-body--row"]');
     const all_tr_list = Array.from(all_tr);
     const orders = [];
     
@@ -67,24 +67,33 @@ async function parsePageData() {
 
 // 处理单个tr数据的函数
 async function process_tr(tr) {
-    const dxm_id = tr.getAttribute('data-orderid').trim();
+    const dxm_id = tr.getAttribute('rowid').trim();
     // console.log(`解析店小秘订单ID：${dxm_id}`);
-    const response = await fetch(`https://www.dianxiaomi.com/package/detail.htm?packageId=${dxm_id}`, {
-        method: 'GET',
+    const response = await fetch(`https://www.dianxiaomi.com/api/order/detail.json`, {
+        method: 'POST',
+        body: `orderId=${encodeURIComponent(dxm_id)}&history=`,
         headers: {
-            'accept': 'text/html,application/xhtml+xml,application/xml',
-            'referer': 'https://www.dianxiaomi.com/order/index.htm?go=m101',
-            'user-agent': navigator.userAgent
-        }
+            "accept": "application/json, text/plain, */*",
+            "accept-language": "zh-CN,zh;q=0.9",
+            "bx-v": "2.5.11",
+            "cache-control": "no-cache",
+            "content-type": "application/x-www-form-urlencoded",
+            "origin": "https://www.dianxiaomi.com",
+            "pragma": "no-cache",
+            "referer": "https://www.dianxiaomi.com/web/order/approved?go=m101",
+            'user-agent': navigator.userAgent,
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+        },
+        credentials: 'include' // 包含跨域请求的cookie
     });
-    const html = await response.text();
-    const doc = new DOMParser().parseFromString(html, 'text/html');
-    const created_at = tr.querySelector('td:nth-child(5) div:nth-child(1)').textContent.trim().match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/)[0];
+    const detail_json = await response.json();
+    // const created_at = tr.querySelector('td:nth-child(5) div:nth-child(1)').textContent.trim().match(/\d{4}-\d{2}-\d{2} \d{2}:\d{2}/)[0];
     return {
         dxm_order_number: dxm_id,
-        order_number: tr.querySelector('a[class*="orderNumberSpan"]').textContent.trim(),
-        order_created_at: `${created_at}:00`,
-        shipping_zip_code: doc.getElementById('detailZip1').textContent.trim().split('-')[0],
+        order_number: detail_json.data.dxmOrder.orderId,
+        order_created_at: (d => `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,'0')}-${d.getDate().toString().padStart(2,'0')} ${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}:${d.getSeconds().toString().padStart(2,'0')}`)(new Date(detail_json.data.dxmOrder.orderCreateTime)),
+        shipping_zip_code: detail_json.data.address.zip.split('-')[0],
         status: 0,
     };
 }

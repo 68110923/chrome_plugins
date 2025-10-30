@@ -1,18 +1,35 @@
-// 等待页面加载完成
-// 页面加载完成后初始化
-// 当DOM完全加载时，执行添加物流按钮的函数
 window.addEventListener('load', () => { addLogisticsButton();});
 
-// 向页面添加一键发物流按钮
+// 给页面中添加按钮
 function addLogisticsButton() {
-    const buttonGroup = document.querySelector('[data-type="order"] div[class="normalBtnGroup"]');
-    const newButton = document.createElement('button');
-    newButton.textContent = '一键发物流';
-    newButton.className = 'btn btn-primary';
-    newButton.style.marginLeft = '5px';
-    newButton.addEventListener('click', open_order_input_window);
-    buttonGroup.appendChild(newButton);
-    showNotification('一键发物流功能已注入');
+    const targetSelector = '.tool-bar:not([style*="display: none"]) > .btn-left > .order-actions-buttons';
+    if (!checkElement()) {
+        const observer = new MutationObserver(() => {
+            if (checkElement()) {
+                observer.disconnect(); // 找到后停止监听
+            }
+        });
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+    }
+    function checkElement() {
+        const buttonGroup = document.querySelector(targetSelector);
+        if (buttonGroup) {
+            // 找到元素后执行注入逻辑
+            const newButton = document.createElement('button');
+            newButton.textContent = '一键发物流';
+            newButton.className = 'css-1oz1bg8 ant-btn ant-btn-primary buttons-item';
+            newButton.type = 'button';
+            newButton.style.marginLeft = '5px';
+            newButton.addEventListener('click', open_order_input_window);
+            buttonGroup.appendChild(newButton);
+            showNotification('一键发物流功能已注入');
+            return true; // 表示已找到
+        }
+        return false; // 未找到
+    }
 }
 
 // 处理一键发物流按钮的点击事件

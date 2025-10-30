@@ -4,7 +4,7 @@
 chrome.webRequest.onCompleted.addListener(
   async (details) => {
     // 只处理目标URL的POST请求
-    if (details.method === 'POST' && details.url === 'https://www.dianxiaomi.com/package/searchPackage.htm') {
+    if (details.method === 'POST' && details.url === 'https://www.dianxiaomi.com/api/package/searchPackage.json') {
       try {
         // 发送消息给内容脚本，通知有新的响应
         await chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -23,7 +23,7 @@ chrome.webRequest.onCompleted.addListener(
     }
   },
   {
-    urls: ['https://www.dianxiaomi.com/package/searchPackage.htm']
+    urls: ['https://www.dianxiaomi.com/api/package/searchPackage.json']
   }
 );
 
@@ -40,65 +40,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-// 添加HTTP请求代理功能
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  if (message.type === 'PROXY_HTTP_REQUEST') {
-    // 从消息中获取请求信息
-    const { url, method, headers, body } = message.request;
-    
-    // 构建请求选项
-    const options = {
-      method: 'POST',
-      headers: headers || {},
-      body: body || null
-    };
-    
-    // 发起请求
-    fetch(url, options)
-      .then(response => {
-        // 获取响应头
-        const responseHeaders = {};
-        for (const [key, value] of response.headers.entries()) {
-          responseHeaders[key] = value;
-        }
-        
-        // 尝试解析JSON响应
-        return Promise.all([
-          response.text(), // 获取响应文本
-          Promise.resolve(response.status), // 获取状态码
-          Promise.resolve(responseHeaders) // 获取响应头
-        ]);
-      })
-      .then(([responseBody, status, headers]) => {
-        try {
-          // 尝试将响应文本解析为JSON
-          const parsedBody = JSON.parse(responseBody);
-          sendResponse({
-            success: true,
-            status: status,
-            headers: headers,
-            body: parsedBody
-          });
-        } catch (e) {
-          // 如果不是有效的JSON，返回原始文本
-          sendResponse({
-            success: true,
-            status: status,
-            headers: headers,
-            body: responseBody
-          });
-        }
-      })
-      .catch(error => {
-        sendResponse({
-          success: false,
-          error: error.message
-        });
-      });
-    
-    return true; // 保持消息通道开放
-  }
-});
 
 // 扩展安装时的初始化
 chrome.runtime.onInstalled.addListener(() => {
