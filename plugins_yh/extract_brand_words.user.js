@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         提取品牌词 - 店小秘 - 产品shein
 // @namespace    http://tampermonkey.net/
-// @version      1.5.9
+// @version      1.6.0
 // @description  点击按钮提取标题中的品牌词并复制
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/sheinProduct/draft*
@@ -113,7 +113,7 @@ GM_addStyle(`
             const firstWord = text.split(/\s+/)[0];
             if (
                 firstWord &&
-                /^(?=.*[A-Z])[A-Z0-9\W]+$/.test(firstWord) &&   // 由大写字母、数字、符号组合而成
+                /^(?=.*[A-Za-z])[A-Z0-9\W]+$/.test(firstWord) &&   // 由大写字母、数字、符号组合而成
                 !/PCS$/.test(firstWord) &&   // 关键：排除以PCS结尾的单词
                 !/\d+PC$/.test(firstWord)
             ) {
