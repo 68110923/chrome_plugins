@@ -85,7 +85,7 @@ GM_addStyle(`
     'use strict';
     // 页面加载完成后添加按钮（避免过早注入）
     window.addEventListener('load', () => {
-        setTimeout(addExtractButton, 2000); // 延迟1秒添加按钮，确保页面结构稳定
+        setTimeout(addExtractButton, 2000); // 延迟2秒添加按钮，确保页面结构稳定
     });
 
     function addExtractButton() {
