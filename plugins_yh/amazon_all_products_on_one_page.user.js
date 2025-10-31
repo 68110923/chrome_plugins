@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         亚马逊一键加载全部商品
+// @name         加载全部商品 -> 亚马逊 - 搜索页
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  点击按钮加载亚马逊所有分页商品到当前页
 // @author       大大怪将军
 // @match        https://www.amazon.com/s?*
