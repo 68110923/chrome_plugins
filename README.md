@@ -21,11 +21,11 @@
 
 ## 🚀 可用脚本
 
-| 脚本名称 | 功能描述                          | 适用平台 | 安装链接                                                                                                                                                 |
-|---------|-------------------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ASIN->链接 - 店小秘 | 将亚马逊ASIN转换为可点击的链接，方便店小秘用户快速访问商品页面 | 店小秘 | <a href="https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js" target="_blank">安装脚本</a>                    |
-| 提取品牌词 - 店小秘 - 产品shein | 从页面中提取品牌关键词，特别适用于店小秘-产品-SHEIN | 店小秘 | <a href="https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js" target="_blank">安装脚本</a>             |
-| 加载全部商品 - 亚马逊 - 搜索页 | 在亚马逊搜索结果页面自动加载所有商品，无需手动点击"下一页" | 亚马逊 | <a href="https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js" target="_blank">安装脚本</a> |
+| 脚本名称 | 功能描述                          | 适用平台 | 安装链接                                                                                                                                 |
+|---------|-------------------------------|--------|--------------------------------------------------------------------------------------------------------------------------------------|
+| ASIN->链接 - 店小秘 | 将亚马逊ASIN转换为可点击的链接，方便店小秘用户快速访问商品页面 | 店小秘 | [安装脚本](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/asin_to_link.user.js)                     |
+| 提取品牌词 - 店小秘 - 产品shein | 从页面中提取品牌关键词，特别适用于店小秘-产品-SHEIN | 店小秘 | [安装脚本](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js)             |
+| 加载全部商品 - 亚马逊 - 搜索页 | 在亚马逊搜索结果页面自动加载所有商品，无需手动点击"下一页" | 亚马逊 | [安装脚本](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js) |
 
 
 ---
