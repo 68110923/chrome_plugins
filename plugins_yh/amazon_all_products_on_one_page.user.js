@@ -1,27 +1,25 @@
 // ==UserScript==
 // @name         加载全部商品 -> 亚马逊 - 搜索页
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
-// @description  点击按钮加载亚马逊所有分页商品到当前页
+// @version      1.0.3
+// @description  amazon 搜索页 点击按钮加载所有分页商品到当前页, 附加商品列表自动移除碍事的广告
 // @author       大大怪将军
 // @match        https://www.amazon.com/s?*
-// @match        https://www.amazon.co.uk/s?*
-// @match        https://www.amazon.de/s?*
 // @match        https://www.amazon.com.mx/s?*
-// @grant        none
+// @grant        GM_log
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js
 // ==/UserScript==
 
 (function() {
     'use strict';
-    let isLoading = false;
-    let totalPages = 1;
-    let currentPage = 1;
+    createLoadButton();
+    GM_log('这是一条 GM_log 日志');
 
     // 创建加载按钮
     function createLoadButton() {
         const button = document.createElement('button');
+        button.id = 'sf-load-all-btn';
         button.textContent = '加载全部商品';
         button.style.position = 'fixed';
         button.style.top = '20px';
@@ -37,50 +35,36 @@
     }
 
     // 加载所有分页商品
-    function loadAllPages() {
-        if (isLoading) return;
-        isLoading = true;
-        const button = document.querySelector('button');
-        button.textContent = '加载中...';
-        // 先获取总页数
-        const pageLinks = document.querySelectorAll('a.s-pagination-item:not(.s-pagination-next):not(.s-pagination-previous)');
-        totalPages = pageLinks.length > 0 ? parseInt(pageLinks[pageLinks.length - 1].textContent) : 1;
-        currentPage = 2;
-        loadPage(currentPage);
+    async function loadAllPages() {
+        const user_button = document.querySelector('#sf-load-all-btn');
+        user_button.textContent = '加载中...'
+        const totalPages = parseInt(document.querySelector('.s-unordered-list-accessibility > *:nth-last-child(2)').textContent.trim());
+        let infoPage = parseInt(document.querySelector('.s-unordered-list-accessibility span[aria-current="page"]').textContent.trim());
+        const container = document.querySelector('div.s-main-slot');
+        document.querySelectorAll('div.s-main-slot > div[data-asin=""]').forEach((element) => {element.remove();})
+        for (let i = 0; i < totalPages; i++) {
+            if (i + 1 === infoPage) continue;
+            user_button.textContent = `加载第 ${i + 1} 页...`
+            const items = await requestPage(i + 1);
+            items.forEach(item => {
+                container.appendChild(item);
+            });
+        }
+        GM_log(`加载完成 共 ${totalPages} 页`)
+        user_button.textContent = `加载完成 共 ${totalPages} 页`
+        user_button.onclick = () => {
+            alert(`已加载完成 共 ${totalPages} 页, 请勿重复加载`)
+        }
     }
 
-    // 加载指定页商品
-    function loadPage(pageNum) {
-        if (pageNum > totalPages) {
-            const button = document.querySelector('button');
-            button.textContent = '全部加载完成';
-            isLoading = false;
-            return;
-        }
+    async function requestPage(pageNum) {
         const nextPageUrl = new URL(window.location.href);
         nextPageUrl.searchParams.set('page', pageNum);
-        fetch(nextPageUrl.href)
-            .then(response => response.text())
-            .then(html => {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(html, 'text/html');
-                const nextItems = doc.querySelectorAll('div.s-result-item');
-                if (nextItems.length > 0) {
-                    const container = document.querySelector('div.s-main-slot');
-                    nextItems.forEach(item => {
-                        container.appendChild(item);
-                    });
-                    const button = document.querySelector('button');
-                    button.textContent = `已加载第${pageNum}/${totalPages}页`;
-                    currentPage++;
-                    loadPage(currentPage);
-                }
-            })
-            .catch(error => {
-                console.error('加载失败:', error);
-                isLoading = false;
-            });
+        const response = await fetch(nextPageUrl.href);
+        const responseText = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(responseText, 'text/html');
+        return doc.querySelectorAll('div.s-result-item[role="listitem"]');
     }
 
-    createLoadButton();
 })();
