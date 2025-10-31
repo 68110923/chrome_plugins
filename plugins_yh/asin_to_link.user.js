@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ASIN->链接 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  把ASIN转换为链接
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -20,13 +20,19 @@
     XMLHttpRequest.prototype.open = function(method, url, ...args) {
         if (url.includes('api/package/detail.json')) {
             console.log(`监听到XMLHttpRequest请求: [${method}]`);
-            setTimeout(() => {extractAsin(this)}, 200);
+
+            const originalOnReadyStateChange = this.onreadystatechange;
+            this.onreadystatechange = function () {if (this.readyState === 4 && this.status === 200) {
+                if (originalOnReadyStateChange && typeof originalOnReadyStateChange === 'function') {originalOnReadyStateChange.apply(this, arguments)}
+                setTimeout(() => {extractAsin(this.responseText)}, 100);
+            }};
         }
+
         return originalXhrOpen.apply(this, [method, url, ...args]);
     }
 
-    function extractAsin(xhr) {
-        const country = JSON.parse(xhr.responseText).data.parentOrder.countryCN;
+    function extractAsin(responseText) {
+        const country = JSON.parse(responseText).data.parentOrder.countryCN;
         let host = {
             '美国': 'www.amazon.com',
             '法国': 'www.amazon.fr',
