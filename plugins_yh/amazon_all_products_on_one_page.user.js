@@ -6,6 +6,7 @@
 // @author       大大怪将军
 // @match        https://www.amazon.com/s?*
 // @match        https://www.amazon.com.mx/s?*
+// @grant        unsafeWindow
 // @grant        GM_log
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js
@@ -14,7 +15,6 @@
 (function() {
     'use strict';
     createLoadButton();
-    GM_log('这是一条 GM_log 日志');
 
     // 创建加载按钮
     function createLoadButton() {
