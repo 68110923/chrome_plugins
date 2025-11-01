@@ -1,10 +1,16 @@
 // ==UserScript==
 // @name         加载全部商品 -> 亚马逊 - 搜索页
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.0.6
 // @description  amazon 搜索页 点击按钮加载所有分页商品到当前页, 附加商品列表自动移除碍事的广告
 // @author       大大怪将军
-// @match        https://www.amazon.*/s?*
+// @match        https://www.amazon.com/s?*
+// @match        https://www.amazon.com.mx/s?*
+// @match        https://www.amazon.co.jp/s?*
+// @match        https://www.amazon.co.uk/s?*
+// @match        https://www.amazon.fr/s?*
+// @match        https://www.amazon.de/s?*
+// @match        https://www.amazon.ca/s?*
 // @match        https://amazon.*/s?*
 // @grant        unsafeWindow
 // @grant        GM_log
