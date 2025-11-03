@@ -9,8 +9,8 @@
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_test.user.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_test.user.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_extract_product_list.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_extract_product_list.user.js
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 // ==/UserScript==
 
