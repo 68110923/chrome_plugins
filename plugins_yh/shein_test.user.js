@@ -48,10 +48,11 @@
         // const totalPages = parseInt(document.querySelector('.so-pagination-links a:nth-last-child(2)').textContent.match(/\d+/)[0]);
         const totalPages = 1    // totalPages 测试用，实际应该把上面这一行取消注释
         console.log(`pageSize: ${pageSize}, totalPages: ${totalPages}`);
+
+        let tempData = null
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
             sf_button_element.textContent = `提取第${pageNum}页...`;
             const pageData = await postData(pageNum, pageSize);
-
 
             // 下面可以处理 pageData，例如提取 spu_name
             pageData.info.data.forEach(item => {
@@ -60,11 +61,10 @@
             console.log(`.........................脚本输出..................pageData: ${JSON.stringify(pageData)}`);
 
 
-
-
+            tempData = pageData.info.data
         }
         sf_button_element.textContent = '已提取全部SKC';
-        sf_button_element.onclick = () => alert('已经提取完成, 请查看控制台日志');
+        sf_button_element.onclick = () => alert(JSON.stringify(tempData));
     }
 
 
