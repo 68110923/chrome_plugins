@@ -28,7 +28,7 @@
         if (!document.getElementById(sf_button_id)) {
             const button = document.createElement('button');
             button.id = sf_button_id;
-            button.textContent = '提取全部SKC';
+            button.textContent = '提取已上架数据';
             button.style.position = 'fixed';
             button.style.top = '20px';
             button.style.right = '20px';
@@ -57,8 +57,8 @@
         }
         sf_button_element.textContent = '正在生成Excel...';
         downloadExcel(allItems);
-        sf_button_element.textContent = '已提取全部SKC';
-        sf_button_element.onclick = () => alert(`已提取全部SKC, 共${allItems.length}条, 请在 下载Excel 中查看`);
+        sf_button_element.textContent = '已提取全部数据';
+        sf_button_element.onclick = () => alert(`已提取全部数据, 共${allItems.length}条, 请在 下载Excel 中查看`);
     }
 
     function downloadExcel(items) {
