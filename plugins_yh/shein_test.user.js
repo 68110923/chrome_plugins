@@ -55,6 +55,7 @@
             const pageData = await postData(pageNum, pageSize);
             allItems.push(...pageData.info.data);
         }
+        sf_button_element.textContent = '正在生成Excel...';
         downloadExcel(allItems);
         sf_button_element.textContent = '已提取全部SKC';
         sf_button_element.onclick = () => alert(`已提取全部SKC, 共${allItems.length}条, 请在 下载Excel 中查看`);
