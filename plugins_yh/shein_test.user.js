@@ -4,7 +4,7 @@
 // @version      1.0.0
 // @description  shein商品列表
 // @author       大大怪将军
-// @match        https://sellerhub.shein.com/#/spmp/commdities/list
+// @match        https://sellerhub.shein.com/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -16,13 +16,14 @@
 
 (function() {
     'use strict';
-    // 监听 fetch 请求
-    console.log(`子脚本开始执行*默认操作添加一个按钮********************************************************************`);
-    setTimeout(() => {addButton();}, 2000);
     const sf_button_id = 'sf-load-all-btn'
 
+    if (window.location.href.includes('/#/spmp/commdities/list')) {
+        console.log(`子脚本开始执行*默认操作添加一个按钮********************************************************************`);
+        setTimeout(() => {addButton();}, 2000);
+    }
+
     function addButton() {
-        // 创建加载按钮
         if (!document.getElementById(sf_button_id)) {
             const button = document.createElement('button');
             button.id = sf_button_id;
