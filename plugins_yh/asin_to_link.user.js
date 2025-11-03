@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ASIN->链接 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.3
+// @version      1.0.4
 // @description  把ASIN转换为链接
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -48,14 +48,30 @@
             '墨西哥': 'www.amazon.com.mx',
             '瑞典': 'www.amazon.se',
         }[country];
+        // 处理a标签
         document.querySelectorAll("table.myj-table .order-sku__meta a[target='_blank']").forEach((element) => {
             const asinMatch = element.textContent.trim().match(/(B0[A-Z0-9]{8})/);
             if (asinMatch) {
                 const asin = asinMatch[1];
                 element.style.fontWeight = 'bold';
                 element.href=host ? `https://${host}/dp/${asin}?th=1` : `未知国家[${country}]请联系脚本作者进行添加`;
-                console.log(`ASIN: ${asin}, 链接: ${element.href}`);
+                console.log(`a标签ASIN: ${asin}, 链接: ${element.href}`);
             }
-        })
+        });
+        // 处理span标签
+        document.querySelectorAll('table.myj-table .order-sku__meta span:not([class])').forEach((element) => {
+            const asinMatch = element.textContent.trim().match(/(B0[A-Z0-9]{8})/);
+            if (asinMatch) {
+                const asin = asinMatch[1];
+                const a = document.createElement('a');
+                a.textContent = element.textContent;
+                a.style = element.style;
+                a.target = '_blank';
+                a.style.fontWeight = 'bold';
+                a.href=host ? `https://${host}/dp/${asin}?th=1` : `未知国家[${country}]请联系脚本作者进行添加`;
+                element.replaceWith(a);
+                console.log(`span标签ASIN: ${asin}, 链接: ${a.href}`);
+            }
+        });
     }
 })();
