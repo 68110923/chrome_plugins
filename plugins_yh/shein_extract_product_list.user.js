@@ -49,12 +49,35 @@
         const totalPages = parseInt(document.querySelector('.so-pagination-links a:nth-last-child(2)').textContent.match(/\d+/)[0]);
         console.log(`pageSize: ${pageSize}, totalPages: ${totalPages}`);
 
+        sf_button_element.textContent = '正在分批请求所有页面...';
+        
+        // 分批处理，每批10个请求
+        const batchSize = 10;
         const allItems = [];
-        for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
-            sf_button_element.textContent = `提取第${pageNum}页...`;
-            const pageData = await postData(pageNum, pageSize);
-            allItems.push(...pageData.info.data);
+        
+        for (let batchStart = 1; batchStart <= totalPages; batchStart += batchSize) {
+            const batchEnd = Math.min(batchStart + batchSize - 1, totalPages);
+            sf_button_element.textContent = `正在获取${batchStart}-${batchEnd}页...`;
+
+            const batchPromises = [];
+            for (let pageNum = batchStart; pageNum <= batchEnd; pageNum++) {batchPromises.push(postData(pageNum, pageSize));}
+
+            const batchData = await Promise.all(batchPromises);
+
+            batchData.forEach((pageData, index) => {
+                if (pageData && pageData.info && pageData.info.data) {
+                    allItems.push(...pageData.info.data);
+                    console.log(`第${batchStart + index}页数据获取成功，共${pageData.info.data.length}条`);
+                } else {
+                    console.log(`第${batchStart + index}页数据获取失败{${JSON.stringify(pageData)}}`);
+                }
+            });
+
+            if (batchEnd < totalPages) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
         }
+        
         sf_button_element.textContent = '正在生成Excel...';
         downloadExcel(allItems);
         sf_button_element.textContent = '已提取全部数据';
@@ -72,7 +95,6 @@
         const fileName = `商品列表_已上架_${new Date().getTime()}.xlsx`; // 文件名带时间戳
         XLSX.writeFile(workbook, fileName); // SheetJS内置的下载函数
     }
-
 
     async function postData(pageNum, pageSize) {
         const response = await fetch(`https://sellerhub.shein.com/spmp-api-prefix/spmp/product/list?page_num=${pageNum}&page_size=${pageSize}`, {
@@ -93,6 +115,4 @@
         })
         return await response.json();
     }
-
-
 })();
