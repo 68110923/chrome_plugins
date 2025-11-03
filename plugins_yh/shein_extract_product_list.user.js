@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         shein商品列表数据提取
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  shein商品列表
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
