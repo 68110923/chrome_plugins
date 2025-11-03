@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         shein商品列表
+// @name         shein商品列表数据提取
 // @namespace    http://tampermonkey.net/
 // @version      1.0.0
 // @description  shein商品列表
