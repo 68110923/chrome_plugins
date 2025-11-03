@@ -45,3 +45,9 @@
 - **GitHub Issues**: [提交问题](https://github.com/68110923/chrome_plugins/issues)
 - **邮箱**: 68110923@qq.com (不常用)
 
+---
+# 好用的浏览器插件
+轻量的远程工具:[Chrome Remote Desktop](https://chromewebstore.google.com/detail/chrome-remote-desktop/inomeogfingihgjfjlpeplalcfajhgai?hl=zh-CN&utm_source=ext_sidebar)
+
+数据提取工具:[XPath Helper 2.0](https://chromewebstore.google.com/detail/xpath-helper-20/nlfdopnkeodpiondihlgnhgpjieoopbj)
+
