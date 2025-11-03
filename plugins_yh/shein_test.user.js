@@ -11,6 +11,7 @@
 // @grant        GM_notification
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_test.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_test.user.js
+// @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 // ==/UserScript==
 
 
@@ -45,26 +46,30 @@
     async function clickButton() {
         const sf_button_element = document.getElementById(sf_button_id);
         const pageSize = parseInt(document.querySelector('.so-pagination-pagesize span[title]').textContent.match(/\d+/)[0]);
-        // const totalPages = parseInt(document.querySelector('.so-pagination-links a:nth-last-child(2)').textContent.match(/\d+/)[0]);
-        const totalPages = 1    // totalPages 测试用，实际应该把上面这一行取消注释
+        const totalPages = parseInt(document.querySelector('.so-pagination-links a:nth-last-child(2)').textContent.match(/\d+/)[0]);
         console.log(`pageSize: ${pageSize}, totalPages: ${totalPages}`);
 
-        let tempData = null
+        const allItems = [];
         for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
             sf_button_element.textContent = `提取第${pageNum}页...`;
             const pageData = await postData(pageNum, pageSize);
-
-            // 下面可以处理 pageData，例如提取 spu_name
-            pageData.info.data.forEach(item => {
-                console.log(`.........................脚本输出..................spu_name: ${item['spu_name']}`);
-            })
-            console.log(`.........................脚本输出..................pageData: ${JSON.stringify(pageData)}`);
-
-
-            tempData = pageData.info.data
+            allItems.push(...pageData.info.data);
         }
+        downloadExcel(allItems);
         sf_button_element.textContent = '已提取全部SKC';
-        sf_button_element.onclick = () => alert(JSON.stringify(tempData));
+        sf_button_element.onclick = () => alert(`已提取全部SKC, 共${allItems.length}条, 请在 下载Excel 中查看`);
+    }
+
+    function downloadExcel(items) {
+        if (items.length === 0) {
+            alert('没有可导出的数据');
+            return;
+        }
+        const workbook = XLSX.utils.book_new();
+        const worksheet = XLSX.utils.json_to_sheet(items);
+        XLSX.utils.book_append_sheet(workbook, worksheet, '数据列表'); // '数据列表'是工作表名称
+        const fileName = `商品列表_已上架_${new Date().getTime()}.xlsx`; // 文件名带时间戳
+        XLSX.writeFile(workbook, fileName); // SheetJS内置的下载函数
     }
 
 
