@@ -54,15 +54,15 @@
 
             // 下面可以处理 pageData，例如提取 spu_name
             pageData.info.data.forEach(item => {
-                console.log(`spu_name: ${item['spu_name']}`);
+                console.log(`.........................脚本输出..................spu_name: ${item['spu_name']}`);
             })
-            console.log(`pageData: ${JSON.stringify(pageData)}`);
+            console.log(`.........................脚本输出..................pageData: ${JSON.stringify(pageData)}`);
 
 
 
 
         }
-        sf_button_element.textContent = '提取全部SKC';
+        sf_button_element.textContent = '已提取全部SKC';
         sf_button_element.onclick = () => alert('已经提取完成, 请查看控制台日志');
     }
 
