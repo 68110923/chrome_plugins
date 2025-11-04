@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         shein商品列表数据提取
+// @name         批量导出 - 已上架 - 商品列表 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
-// @description  shein商品列表
+// @version      1.0.2
+// @description  已上架数据批量导出为Excel文件
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
 // @grant        GM_addStyle
