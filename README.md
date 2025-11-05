@@ -8,8 +8,8 @@
 
 首先，您需要安装"篡改猴"（Tampermonkey）扩展程序，这是一个用户脚本管理器，用于管理和运行各种用户脚本。
 
-1. [前往Chrome应用商店安装](https://chromewebstore.google.com/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=zh-CN&utm_source=ext_sidebar)
-
+1. **[前往Chrome应用商店安装](https://chromewebstore.google.com/detail/%E7%AF%A1%E6%94%B9%E7%8C%B4/dhdgffkkebhmkfjojejmpbldmpobfkfo?hl=zh-CN&utm_source=ext_sidebar)**
+   - 比特浏览器建议在 扩展中心 -> Tampermonkey右下角的"设置" -> 所有窗口 -> 确定 -> 重启浏览器即可看到插件
 2. **配置权限**
    - 打开Chrome扩展管理页面：[chrome://extensions/](chrome://extensions/)
    - ✅ 打开右上角的"开发者模式"
@@ -19,6 +19,9 @@
        - ✅ 固定到工具栏
        - ✅ 在无痕模式下启用
        - ✅ 允许访问文件网址
+3. **选择下方需要用到的脚本，点击"安装"按钮进行安装。**
+
+
 
 ## 🚀 可用脚本
 
