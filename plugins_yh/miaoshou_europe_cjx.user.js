@@ -1,17 +1,16 @@
 // ==UserScript==
-// @name         批量导出 - 已上架 - 商品列表 - SHEIN
+// @name         上架指定站点 - SHEIN采集箱 - 产品 - 妙手
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
-// @description  已上架数据批量导出为Excel文件
+// @version      1.0.0
+// @description  上架指定站点 - SHEIN采集箱 - 产品 - 妙手
 // @author       大大怪将军
-// @match        https://sellerhub.shein.com/*
+// @match        https://erp.91miaoshou.com/shein/collect_box/items
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_extract_product_list.user.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_extract_product_list.user.js
-// @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/miaoshou_europe_cjx.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/miaoshou_europe_cjx.user.js
 // ==/UserScript==
 
 
@@ -50,11 +49,11 @@
         console.log(`pageSize: ${pageSize}, totalPages: ${totalPages}`);
 
         sf_button_element.textContent = '正在分批请求所有页面...';
-        
+
         // 分批处理，每批10个请求
         const batchSize = 10;
         const allItems = [];
-        
+
         for (let batchStart = 1; batchStart <= totalPages; batchStart += batchSize) {
             const batchEnd = Math.min(batchStart + batchSize - 1, totalPages);
             sf_button_element.textContent = `正在获取${batchStart}-${batchEnd}页...`;
@@ -75,7 +74,7 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
-        
+
         sf_button_element.textContent = '正在生成Excel...';
         downloadExcel(allItems);
         sf_button_element.textContent = '已提取全部数据';
