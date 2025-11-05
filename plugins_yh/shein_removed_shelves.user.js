@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         一键下架 - 已售罄 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  一键下架 - 已售罄 - SHEIN
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
@@ -102,9 +102,9 @@
     async function checkedButtonFunction() {
         const button_log = document.getElementById(sf_button_id);
 
-        const inputSKCOrg = prompt("[已售罄] - 请输入下架的SKC（换行分隔）：", '');
+        const inputSKCOrg = prompt("[已售罄] - 请输入下架的SKC（换行或制表符分隔）：", '');
         if (!inputSKCOrg) {return;}
-        const inputSKC = inputSKCOrg.split('\n').map(item => item.trim()).filter(item => item !== '');
+        const inputSKC = inputSKCOrg.split(/[\n\t]+/).map(item => item.trim()).filter(item => item !== '');
 
         const inputSitesOrg = prompt("[已售罄] - 请输入下架的站（逗号分隔）：", Object.keys(siteMapping).join(','));
         if (!inputSitesOrg) {return;}
