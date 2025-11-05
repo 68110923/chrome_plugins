@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         批量导出 - 已上架 - 商品列表 - SHEIN
+// @name         提取可参加活动的SKC - 已上架 - 商品列表 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
-// @description  已上架数据批量导出为Excel文件
+// @version      1.0.3
+// @description  提取可参加活动的SKC - 已上架 - 商品列表 - SHEIN
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
 // @grant        GM_addStyle
@@ -21,14 +21,14 @@
 
     if (window.location.href.includes('/#/spmp/commdities/list')) {
         console.log(`子脚本开始执行*默认操作添加一个按钮********************************************************************`);
-        setTimeout(() => {addButton();}, 2000);
+        setTimeout(() => {addButton();}, 500);
     }
 
     function addButton() {
         if (!document.getElementById(sf_button_id)) {
             const button = document.createElement('button');
             button.id = sf_button_id;
-            button.textContent = '提取已上架数据';
+            button.textContent = '提取可参加活动的SKC';
             button.style.position = 'fixed';
             button.style.top = '20px';
             button.style.right = '20px';
@@ -75,22 +75,31 @@
                 await new Promise(resolve => setTimeout(resolve, 500));
             }
         }
+
+        // 过滤出可参加活动的SKC  first_shelf_time 原始数据"2025-11-01 21:42:23"  小于今天0点0分0秒的商品 只保留skc_name字段
+        const items = allItems.filter(item => new Date(item.first_shelf_time) < new Date().setHours(0, 0, 0, 0)).flatMap(item => item.skc_info_list.map(skc => ({skc_name: skc.skc_name})));
+        console.log(`可参加活动的SKC共${items.length}条`);
         
         sf_button_element.textContent = '正在生成Excel...';
-        downloadExcel(allItems);
+        // 每500条数据生成一个Excel文件
+        for (let i = 0; i < items.length; i += 500) {
+            const chunk = items.slice(i, i + 500);
+            downloadExcel(chunk,i, i + 500);
+        }
         sf_button_element.textContent = '已提取全部数据';
-        sf_button_element.onclick = () => alert(`已提取全部数据, 共${allItems.length}条, 请在 下载Excel 中查看`);
+        sf_button_element.onclick = () => alert(`SPU共${allItems.length}条, 可参加活动的SKC共${items.length}条, 请在 Excel 文件中查看`);
     }
 
-    function downloadExcel(items) {
+    function downloadExcel(items, start, end) {
         if (items.length === 0) {
-            alert('没有可导出的数据');
+            alert(`第${start + 1}-${end}页没有可导出的数据`);
             return;
         }
         const workbook = XLSX.utils.book_new();
         const worksheet = XLSX.utils.json_to_sheet(items);
-        XLSX.utils.book_append_sheet(workbook, worksheet, '数据列表'); // '数据列表'是工作表名称
-        const fileName = `商品列表_已上架_${new Date().getTime()}.xlsx`; // 文件名带时间戳
+        XLSX.utils.book_append_sheet(workbook, worksheet, ''); // 默认工作表Sheet1
+        XLSX.utils.sheet_add_aoa(worksheet, [['skc（必填）', '活动价']], {origin: 'A1'});
+        const fileName = `商品列表_已上架_${new Date().getTime()}_${start + 1}-${end}.xlsx`; // 文件名带时间戳
         XLSX.writeFile(workbook, fileName); // SheetJS内置的下载函数
     }
 

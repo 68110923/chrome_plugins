@@ -10,6 +10,8 @@
 // @grant        GM_log
 // @grant        GM_notification
 // @grant        GM_registerMenuCommand
+// @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
+
 
 // @require      file:///C:/Users/admin/WebstormProjects/chrome_plugins/plugins_yh/extract_brand_words.user.js
 // ==/UserScript==
