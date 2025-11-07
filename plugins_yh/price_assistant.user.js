@@ -86,7 +86,7 @@
         modal.style.border = '2px solid #ccc';
         modal.style.borderRadius = '8px';
         modal.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-        modal.style.minWidth = '1030px'; // 调整模态框的最小宽度，可根据需要修改这个值
+        modal.style.minWidth = '1050px'; // 调整模态框的最小宽度，可根据需要修改这个值
         modal.style.minHeight = '600px';
         modal.style.zIndex = '9999';
         modal.style.overflow = 'hidden';
@@ -119,7 +119,68 @@
         contentDiv.style.height = '100%';
         contentDiv.style.overflow = 'auto';
         contentDiv.style.padding = '10px';
-        
+
+        // 审核列表
+        const reviewTable = document.createElement('table');
+        reviewTable.style.width = '100%';
+        reviewTable.style.borderCollapse = 'collapse';
+        // 表头
+        const thead = document.createElement('thead');
+        thead.innerHTML = `
+            <tr>
+                <th style="border: 1px solid #ccc; padding: 8px;">🚗</th>
+                <th style="border: 1px solid #ccc; padding: 8px;">主图</th>
+                <th style="border: 1px solid #ccc; padding: 8px;">价格</th>
+                <th style="border: 1px solid #ccc; padding: 8px;">颜色</th>
+                <th style="border: 1px solid #ccc; padding: 8px;">尺寸</th>
+            </tr>
+        `;
+        reviewTable.appendChild(thead);
+        // 表体
+        const tbody = document.createElement('tbody');
+        tbody.innerHTML = `
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px;">采购</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="amazon_img"><img class="resizable-img" src='https://m.media-amazon.com/images/I/817S7Vf+gsL._AC_SX395_.jpg' alt="亚马逊主图"></td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="amazon_price">未识别</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="amazon_color">未识别</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="amazon_size">未识别</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px;">售出</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="dxm_img"><img class="resizable-img" src='https://m.media-amazon.com/images/I/817S7Vf+gsL._AC_SX395_.jpg' alt="店小秘图片"></td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="dxm_price">未识别</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="dxm_color">未识别</td>
+                <td style="border: 1px solid #ccc; padding: 8px;" id="dxm_size">未识别</td>
+            </tr>
+            <tr>
+                <td style="border: 1px solid #ccc; padding: 8px; color: black"><button id="review_success">审核通过</button></td>
+                <td style="border: 1px solid #ccc; padding: 8px; color: black" id="review_img">暂不支持图片识别</td>
+                <td style="border: 1px solid #ccc; padding: 8px; color: black" id="review_price">?</td>
+                <td style="border: 1px solid #ccc; padding: 8px; color: black" id="review_color">?</td>
+                <td style="border: 1px solid #ccc; padding: 8px; color: black" id="review_size">?</td>
+            </tr>
+            <style>
+                /* 默认样式：指定大小 */
+                .resizable-img {
+                  width: 30px; /* 初始宽度 */
+                  height: 30px; /* 高度自适应 */
+                  transition: all 0.3s ease; /* 平滑过渡动画 */
+                }
+                
+                /* 点击后（复选框选中）：显示原始大小 */
+                .resizable-img:checked {
+                  width: auto; /* 恢复原始宽度 */
+                  height: auto; /* 恢复原始高度 */
+                  max-width: 90vw; /* 限制最大宽度，避免溢出 */
+                  max-height: 90vh; /* 限制最大高度 */
+                  position: relative;
+                  z-index: 100;
+                }
+            </style>
+        `;
+        reviewTable.appendChild(tbody);
+
         // 加载提示
         const loadingText = document.createElement('div');
         loadingText.textContent = '正在通过后台请求亚马逊页面内容...';
@@ -131,6 +192,7 @@
         // 组装模态框
         modal.appendChild(titleBar);
         modal.appendChild(closeBtn);
+        modal.appendChild(reviewTable);
         modal.appendChild(contentDiv);
         document.body.appendChild(modal);
         
@@ -179,6 +241,13 @@
         
         // 通过后台请求亚马逊页面内容
         fetchAmazonContent(url, contentDiv, titleBar);
+        // 点击审核通过按钮
+        document.getElementById('review_success').addEventListener('click', handleReviewSuccess);
+    }
+
+    function handleReviewSuccess() {
+        copyToClipboard(`${getUrl()}\n${getAsin()}\n${getPrice()}`);
+        alert('该功能尚未开发, 已将商品信息复制到剪贴板, 请手动处理后续流程!!!!');
     }
     
     // 通过后台请求亚马逊页面内容
@@ -265,6 +334,45 @@
                 
                 titleBar.textContent = '核价助手 - 请求超时';
             }
+        });
+    }
+
+    // 获取价格
+    function getPrice() {
+        const host = window.location.host;
+        let priceXPath = '//*[@id="apex_offerDisplay_desktop"]//*[contains(@class, "a-offscreen")]/text()[1]';
+        const priceElement = document.evaluate(priceXPath, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
+
+        if (priceElement && priceElement.textContent) {
+            let price = priceElement.textContent.replace(/[^0-9.]/g, '').trim();
+            if (['www.amazon.fr', 'www.amazon.de', 'www.amazon.it', 'www.amazon.es'].includes(host) && !price.includes('.')) {
+                price = (parseInt(price) / 100).toString();
+            }
+            return price;
+        } else {
+            return null; // 如果没有找到价格，返回 null
+        }
+    }
+
+    // 获取 ASIN
+    function getAsin() {
+        const asinMatch = window.location.href.match(/\/(dp|gp\/product)\/([A-Z0-9]{10})/);
+        return asinMatch ? asinMatch[2] : null;
+    }
+
+    // 获取 URL
+    function getUrl() {
+        const asin = getAsin();
+        return asin ? `https://${window.location.host}/dp/${asin}?th=1&psc=1` : null;
+    }
+
+    // 复制到剪贴板
+    function copyToClipboard(text) {
+        return navigator.clipboard.writeText(text).then(() => {
+            alert(`成功复制到剪贴板！\n\n${text}`);
+        }).catch(err => {
+            console.error('无法复制文本: ', err);
+            alert('复制失败，请检查浏览器控制台获取更多信息。');
         });
     }
 
