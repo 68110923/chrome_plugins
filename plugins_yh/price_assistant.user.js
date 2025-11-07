@@ -57,8 +57,11 @@
                 a.style.fontWeight = 'bold';
                 a.href=host ? `https://${host}/dp/${asin}?th=1` : `未知国家[${country}]请联系脚本作者进行添加`;
                 a.onclick = (event) => {
-                    event.preventDefault();
-                    floatingOpen(a.href);
+                    // 仅当未按住 Ctrl 键时阻止默认行为并触发悬浮窗口
+                    if (!event.ctrlKey) {
+                        event.preventDefault();
+                        floatingOpen(a.href);
+                    }
                 };
                 element.replaceWith(a);
                 console.log(`span标签ASIN: ${asin}, 链接: ${a.href}`);
