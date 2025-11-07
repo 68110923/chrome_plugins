@@ -10,6 +10,7 @@
 // @grant        GM_log
 // @grant        GM_notification
 // @grant        GM_registerMenuCommand
+// @grant        GM_xmlhttpRequest
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 
 
