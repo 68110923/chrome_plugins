@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         ASIN->链接 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.4
+// @version      1.0.5
 // @description  把ASIN转换为链接
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -32,6 +32,7 @@
     }
 
     function extractAsin(responseText) {
+        console.log(`开始处理响应文本`);
         const country = JSON.parse(responseText).data.parentOrder.countryCN;
         let host = {
             '美国': 'www.amazon.com',
@@ -59,7 +60,7 @@
             }
         });
         // 处理span标签
-        document.querySelectorAll('table.myj-table .order-sku__meta span:not([class])').forEach((element) => {
+        document.querySelectorAll('table.myj-table .order-sku__meta span[class="pointer"]').forEach((element) => {
             const asinMatch = element.textContent.trim().match(/(B0[A-Z0-9]{8})/);
             if (asinMatch) {
                 const asin = asinMatch[1];
