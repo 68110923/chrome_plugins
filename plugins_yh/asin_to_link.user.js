@@ -32,7 +32,6 @@
     }
 
     function extractAsin(responseText) {
-        console.log(`开始处理响应文本`);
         const country = JSON.parse(responseText).data.parentOrder.countryCN;
         let host = {
             '美国': 'www.amazon.com',
