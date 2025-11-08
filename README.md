@@ -55,7 +55,7 @@
 ---
 
 # 后续开发任务
-## 审核助手
+## 审核助手 - 开发中
 https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js
 - 优化点
   - 限制  只有正常单可以审核  
@@ -64,6 +64,6 @@ https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_
   - 移除多单审核功能
 
 
-## 亚马逊 单链接监控 预计每天早上一次
+## 亚马逊 单链接监控 预计每天早上一次 - 未开发
 
 ---
