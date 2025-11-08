@@ -53,12 +53,6 @@
 - **邮箱**: 68110923@qq.com (不常用)
 
 ---
-# 好用的浏览器插件
-轻量的远程工具:[Chrome Remote Desktop](https://chromewebstore.google.com/detail/chrome-remote-desktop/inomeogfingihgjfjlpeplalcfajhgai?hl=zh-CN&utm_source=ext_sidebar)
-
-数据提取工具:[XPath Helper 2.0](https://chromewebstore.google.com/detail/xpath-helper-20/nlfdopnkeodpiondihlgnhgpjieoopbj)
-
-
 
 # 后续开发任务
 ## 需求: 审核助手
@@ -71,3 +65,5 @@ https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_
 
 
 #  需求: 亚马逊 单链接监控 预计每天早上一次
+
+---
