@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         核价助手 - 店小秘
+// @name         审核助手 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
-// @description  核价助手 - 店小秘
+// @version      1.0.2
+// @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
 // @grant        GM_addStyle
