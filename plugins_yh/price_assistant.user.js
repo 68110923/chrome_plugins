@@ -334,7 +334,7 @@
                         sf_td_1_element.textContent = `无法识别采购价,点击跳转至商品详情页`;
                         sf_td_1_element.style.cursor = 'pointer';
                         sf_td_1_element.onclick = function() {
-                            window.open(`https://${orderData.order_host}/dp/${orderData.order_asin}`, '_blank');
+                            window.open(orderData.order_link, '_blank');
                         }
                     }
                 } else {
