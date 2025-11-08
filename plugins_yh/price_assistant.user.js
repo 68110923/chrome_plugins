@@ -257,7 +257,7 @@
         let orderData = event.target.data
         let remark_text = `${orderData.order_link}\n${orderData.order_asin}\n${orderData.purchase_price_float}`
         copyToClipboard(remark_text)
-        alert('该功能尚未开发, 已将商品信息复制到剪贴板, 请手动处理后续流程!!!!');
+        alert('自动备注和自动审核功能还未开发, 已将商品信息复制到剪贴板, 请手动处理后续流程!!!!');
     }
     
     // 通过后台请求亚马逊页面内容
