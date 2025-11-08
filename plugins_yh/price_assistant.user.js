@@ -16,10 +16,8 @@
 
 (function() {
     'use strict';
-    // 重写XMLHttpRequest的send方法来捕获表单数据
     const originalXhrSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function(data) {
-        // 检查URL是否包含目标路径，并且表单数据包含'&state=paid&'
         if (this._url && (this._url.includes('api/package/list.json') || this._url.includes('api/package/searchPackage.json')) && data && data.toString().includes('&state=paid&')) {
             const originalOnReadyStateChange = this.onreadystatechange;
             this.onreadystatechange = function () {
