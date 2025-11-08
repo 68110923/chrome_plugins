@@ -58,3 +58,16 @@
 
 数据提取工具:[XPath Helper 2.0](https://chromewebstore.google.com/detail/xpath-helper-20/nlfdopnkeodpiondihlgnhgpjieoopbj)
 
+
+
+# 后续开发任务
+## 需求: 审核助手
+https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js
+- 优化点
+  - 限制  只有正常单可以审核  
+  - 新增预期到货日期识别,并且作为限制条件之一
+  - 手动输入优惠金额或者百分比, 自动计算优惠后利润
+  - 移除多单审核功能
+
+
+#  需求: 亚马逊 单链接监控 预计每天早上一次
