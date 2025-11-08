@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         审核助手 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.4
+// @version      1.0.5
 // @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
@@ -85,6 +85,7 @@
                         'order_link': asinElement.href,
                         'order_price': order_price,
                         'order_price_float': parseFloat(order_price.match(/[\d.]+/)[0]),
+                        'package_id': element.getAttribute('rowid')
                     }
                     floatingOpen(asinElement.href, orderData);
                 }
@@ -255,9 +256,41 @@
 
     function handleReviewSuccess(event) {
         let orderData = event.target.data
-        let remark_text = `${orderData.order_link}\n${orderData.order_asin}\n${orderData.purchase_price_float}`
-        copyToClipboard(remark_text)
-        alert('自动备注和自动审核功能还未开发, 已将商品信息复制到剪贴板, 请手动处理后续流程!!!!');
+
+        // 提交备注
+        const remarkEncodedParams = new URLSearchParams();
+        remarkEncodedParams.set('packageId', orderData.package_id);
+        remarkEncodedParams.set('commentType', 'sys_service');
+        remarkEncodedParams.set('content', `${orderData.order_link}\n${orderData.order_asin}\n${orderData.purchase_price_float}`);
+        remarkEncodedParams.set('color', '009926');
+        remarkEncodedParams.set('history', '');
+        fetch('https://www.dianxiaomi.com/api/dxmPackageComment/add.json', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+            body: remarkEncodedParams,
+        }).then(response => response.json()).then(data => {
+            if (data.code === 0) {
+                const auditEncodedParams = new URLSearchParams();
+                auditEncodedParams.set('packageId', orderData.package_id);
+                fetch('/api/package/audit.json', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                    body: auditEncodedParams.toString(),
+                    redirect: "follow"
+                }).then(() => {
+                    alert('商品已审核通过');
+                }).catch((error) => {
+                    console.error('审核失败:', error);
+                    alert('审核失败');
+                })
+            } else {
+                console.error('备注提交失败:', data.msg);
+                alert(`备注提交失败 ${data.msg}`);
+            }
+        }).catch(error => {
+            console.error(error);
+            alert('备注提交失败, 请检查网络连接');
+        })
     }
     
     // 通过后台请求亚马逊页面内容
@@ -366,16 +399,6 @@
             }
         });
 
-    }
-
-    // 复制到剪贴板
-    function copyToClipboard(text) {
-        return navigator.clipboard.writeText(text).then(() => {
-            alert(`成功复制到剪贴板！\n\n${text}`);
-        }).catch(err => {
-            console.error('无法复制文本: ', err);
-            alert('复制失败，请检查浏览器控制台获取更多信息。');
-        });
     }
 
 })();
