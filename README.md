@@ -13,7 +13,7 @@
 2. **配置权限**
    - 打开Chrome扩展管理页面：[chrome://extensions/](chrome://extensions/)
    - ✅ 打开右上角的"开发者模式"
-   - 找到"篡改猴"扩展，点击"详情"  或者访问:<a href="chrome://extensions/?id=dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">chrome://extensions/?id=dhdgffkkebhmkfjojejmpbldmpobfkfo</a>
+   - 找到插件列表中的"篡改猴"扩展，点击"详情"  或者直接访问:<a href="chrome://extensions/?id=dhdgffkkebhmkfjojejmpbldmpobfkfo" target="_blank">chrome://extensions/?id=dhdgffkkebhmkfjojejmpbldmpobfkfo</a>
    - 勾选以下选项：
        - ✅ 允许运行用户脚本
        - ✅ 固定到工具栏
