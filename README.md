@@ -58,7 +58,7 @@
 ## 审核助手 - 开发中
 https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js
 - 优化点
-  - 限制  只有正常单可以审核  
+  - 限制  只有正常单可以审核
   - 新增预期到货日期识别,并且作为限制条件之一
   - 手动输入优惠金额或者百分比, 自动计算优惠后利润
   - 移除多单审核功能

@@ -5,6 +5,7 @@
 // @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
+// @match        https://www.dianxiaomi.com/web/order/all?go=m1-1*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -57,7 +58,11 @@
         };
         // 处理span标签
         document.querySelectorAll('.vxe-table--body-wrapper tr[class="vxe-body--row"]').forEach((element) => {
-            const asinElement = element.querySelector('.order-sku__meta a.order-sku__name')
+            const asinElements = element.querySelectorAll('.order-sku__meta a.order-sku__name')
+            if (asinElements.length > 1) {
+                return;
+            }
+            const asinElement = asinElements[0];
             const asinMatch = asinElement.textContent.trim().match(/(B0[A-Z0-9]{8})/)
             if (!asinMatch) {
                 console.log(`未找到ASIN: ${element.textContent.trim()}`);
@@ -68,11 +73,8 @@
             const host = hostMapping[country];
             const asin = asinMatch[1];
 
-            // if (!asinElement.textContent.includes(' - 审核助手')) {
-            //     asinElement.textContent += ' - 审核助手';
-            // }
             asinElement.style.fontWeight = 'bold';
-            asinElement.style.color = '#b7a4da';
+            asinElement.style.color = 'rgba(185,150,250,0.91)';
             asinElement.href=host ? `https://${host}/dp/${asin}?th=1&psc=1` : `未知国家[${country}]请联系脚本作者进行添加`;
             asinElement.onclick = (event) => {
                 if (!event.ctrlKey) {
@@ -240,10 +242,8 @@
         };
         document.getElementById('sf_td_3').textContent = `订单金额: ${orderData.order_price_float}`;
 
-        fetchAmazonContent(url, contentDiv, titleBar, orderData);
-
         const reviewSuccessBtn = document.createElement('button');
-        reviewSuccessBtn.textContent = '审核通过';
+        reviewSuccessBtn.textContent = '备注+审核';
         reviewSuccessBtn.style.backgroundColor = '#4CAF50';
         reviewSuccessBtn.data = orderData;
         reviewSuccessBtn.onclick = handleReviewSuccess;
@@ -251,7 +251,10 @@
         reviewSuccessBtn.style.borderRadius = '5px';
         reviewSuccessBtn.style.cursor = 'pointer';
         reviewSuccessBtn.style.fontSize = '15px';
+        reviewSuccessBtn.disabled = true;
         document.getElementById('sf_td_10').appendChild(reviewSuccessBtn);
+
+        fetchAmazonContent(url, contentDiv, titleBar, orderData, reviewSuccessBtn);
     }
 
     function handleReviewSuccess(event) {
@@ -294,7 +297,7 @@
     }
     
     // 通过后台请求亚马逊页面内容
-    function fetchAmazonContent(url, container, titleBar, orderData) {
+    function fetchAmazonContent(url, container, titleBar, orderData, reviewSuccessBtn) {
         // 使用GM_xmlhttpRequest请求亚马逊页面（油猴脚本专用跨域请求）
         GM_xmlhttpRequest({
             method: 'GET',
@@ -333,7 +336,22 @@
                     const sf_td_1_element = document.getElementById('sf_td_1');
                     const sf_td_2_element = document.getElementById('sf_td_2');
                     const sf_td_4_element = document.getElementById('sf_td_4');
+                    const sf_td_5_element = document.getElementById('sf_td_5');
 
+                    // 预计到货日期
+                    const expectedDeliveryDateElement = doc.querySelector(`#desktop_qualifiedBuyBox[data-csa-c-asin="${orderData.order_asin}"] #mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE > span`);
+                    if (expectedDeliveryDateElement) {
+                        const arriving_date = stringToDate(expectedDeliveryDateElement.getAttribute('data-csa-c-delivery-time').trim());
+                        sf_td_5_element.textContent = `预计到货日期: ${arriving_date.toLocaleDateString()}`;
+                        // 中国时区,如果预计到货日期在9个工作日内,显示绿色,否则显示红色
+                        if (arriving_date <= getWorkdayLater(9)) {
+                            sf_td_5_element.style.color = 'green';
+                        } else {
+                            sf_td_5_element.style.color = 'red';
+                        }
+                    } else {
+                        sf_td_5_element.textContent = `预计到货日期:无法识别`;
+                    }
                     // 采购价
                     let purchasePriceElement = doc.querySelector(`#apex_offerDisplay_desktop[data-csa-c-asin="${orderData.order_asin}"] .a-offscreen`);
                     // 备用方案: 如果主方案失败, 尝试使用XPath
@@ -354,14 +372,15 @@
                         sf_td_4_element.textContent = `利润: ${(orderData.order_price_float - purchase_total_price_float).toFixed(2)}    利润率: ${((orderData.order_price_float - purchase_total_price_float) / orderData.order_price_float * 100).toFixed(2)}%`;
 
                         if (orderData.order_price_float > purchase_total_price_float) {
-                            sf_td_4_element.style.color = '#4CAF50';
+                            sf_td_4_element.style.color = 'green';
+                            reviewSuccessBtn.disabled = false;
                         } else {
-                            sf_td_4_element.style.color = '#d32f2f';
+                            sf_td_4_element.style.color = 'red';
                         }
                         orderData.purchase_price_float = purchase_price_float;
                         orderData.purchase_total_price_float = purchase_total_price_float;
                     } else {
-                        sf_td_1_element.style.color = '#d32f2f';
+                        sf_td_1_element.style.color = 'red';
                         sf_td_1_element.textContent = `无法识别采购价,点击跳转至商品详情页`;
                         sf_td_1_element.style.cursor = 'pointer';
                         sf_td_1_element.onclick = function() {
@@ -399,6 +418,27 @@
             }
         });
 
+    }
+
+    function stringToDate(dateString) {
+        // const dateStr = "Friday, November 14";
+        const year = new Date().getFullYear();
+        const fullDateString = `${dateString}, ${year}`;
+        return new Date(fullDateString);
+    }
+
+    function getWorkdayLater(n) {
+        const date = new Date(); // 当前日期
+        let daysAdded = 0;
+        while (daysAdded < n) {
+            date.setDate(date.getDate() + 1); // 加1天
+            const day = date.getDay(); // 获取星期（0=周日，6=周六）
+            // 如果不是周六（6）和周日（0），则计入工作日
+            if (day !== 0 && day !== 6) {
+                daysAdded++;
+            }
+        }
+        return date;
     }
 
 })();
