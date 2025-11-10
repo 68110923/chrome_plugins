@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         审核助手 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.9
+// @version      1.1.0
 // @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
@@ -108,15 +108,16 @@
         const modal = document.createElement('div');
         modal.id = 'price-assistant-modal';
         modal.style.position = 'fixed';
-        modal.style.top = '50%';
-        modal.style.left = '50%';
-        modal.style.transform = 'translate(-50%, -50%)';
+        modal.style.top = '0';
+        modal.style.right = '0';
+        modal.style.height = '100vh';
+        modal.style.transform = 'none';
         modal.style.backgroundColor = 'white';
         modal.style.border = '2px solid #ccc';
-        modal.style.borderRadius = '8px';
+        modal.style.borderRadius = '8px 0 0 8px';
         modal.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
         modal.style.minWidth = '1200px'; // 调整模态框的最小宽度，可根据需要修改这个值
-        modal.style.minHeight = '100%'; // 调整模态框的最小高度，可根据需要修改这个值
+        modal.style.minHeight = '100vh'; // 调整模态框的最小高度，可根据需要修改这个值
         modal.style.zIndex = '9999';
         modal.style.overflow = 'hidden';
         modal.style.display = 'flex';
@@ -215,16 +216,6 @@
         let dragOffset = { x: 0, y: 0 };
         
         titleBar.onmousedown = (e) => {
-            if (modal.style.transform === 'translate(-50%, -50%)') {
-                const rect = modal.getBoundingClientRect();
-                const viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-                const viewportHeight = window.innerHeight || document.documentElement.clientHeight;
-
-                modal.style.top = (viewportHeight / 2 - rect.height / 2) + 'px';
-                modal.style.left = (viewportWidth / 2 - rect.width / 2) + 'px';
-                modal.style.transform = 'none';
-            }
-            
             isDragging = true;
             dragOffset.x = e.clientX - modal.offsetLeft;
             dragOffset.y = e.clientY - modal.offsetTop;
