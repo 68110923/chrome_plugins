@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         审核助手 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.6
+// @version      1.0.7
 // @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
@@ -85,8 +85,8 @@
                         'order_country': country,
                         'order_host': host,
                         'order_link': asinElement.href,
-                        'order_price': order_price,
-                        'order_price_float': parseFloat(order_price.match(/[\d.]+/)[0]),
+                        'order_price_org': order_price,
+                        'order_price': parseFloat(order_price.match(/[\d.]+/)[0]),
                         'package_id': element.getAttribute('rowid')
                     }
                     floatingOpen(asinElement.href, orderData);
@@ -115,7 +115,7 @@
         modal.style.border = '2px solid #ccc';
         modal.style.borderRadius = '8px';
         modal.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
-        modal.style.minWidth = '1050px'; // 调整模态框的最小宽度，可根据需要修改这个值
+        modal.style.minWidth = '1200px'; // 调整模态框的最小宽度，可根据需要修改这个值
         modal.style.zIndex = '9999';
         modal.style.overflow = 'hidden';
         
@@ -240,7 +240,7 @@
         document.onkeydown = (e) => {
             if (e.key === 'Escape') modal.remove();
         };
-        document.getElementById('sf_td_3').textContent = `订单金额: ${orderData.order_price_float}`;
+        document.getElementById('sf_td_3').textContent = `订单金额: ${orderData.order_price_org}`;
 
         const reviewSuccessBtn = document.createElement('button');
         reviewSuccessBtn.textContent = '备注+审核';
@@ -337,6 +337,8 @@
                     const sf_td_2_element = document.getElementById('sf_td_2');
                     const sf_td_4_element = document.getElementById('sf_td_4');
                     const sf_td_5_element = document.getElementById('sf_td_5');
+                    const sf_td_6_element = document.getElementById('sf_td_6');
+                    const sf_td_7_element = document.getElementById('sf_td_7');
 
                     // 预计到货日期
                     const expectedDeliveryDateElement = doc.querySelector(`#desktop_qualifiedBuyBox[data-csa-c-asin="${orderData.order_asin}"] #mir-layout-DELIVERY_BLOCK-slot-PRIMARY_DELIVERY_MESSAGE_LARGE > span`);
@@ -352,39 +354,66 @@
                     } else {
                         sf_td_5_element.textContent = `预计到货日期:无法识别`;
                     }
-                    // 采购价
-                    let purchasePriceElement = doc.querySelector(`#apex_offerDisplay_desktop[data-csa-c-asin="${orderData.order_asin}"] .a-offscreen`);
-                    // 备用方案: 如果主方案失败, 尝试使用XPath
-                    // if (!purchasePriceElement) {
-                    //     purchasePriceElement = doc.evaluate(
-                    //         ``,
-                    //         doc,
-                    //         null,
-                    //         XPathResult.FIRST_ORDERED_NODE_TYPE,
-                    //         null
-                    //     ).singleNodeValue;
-                    // }
-                    if (purchasePriceElement) {
-                        const purchase_price_float = parseFloat(purchasePriceElement.textContent.trim().match(/[\d.]+/)[0]);
-                        const purchase_total_price_float = (purchase_price_float * 1.064 + 1).toFixed(2);
-                        sf_td_1_element.textContent = `采购价: ${purchase_price_float}`;
-                        sf_td_2_element.textContent = `采购总成本: ${purchase_total_price_float}`;
-                        sf_td_4_element.textContent = `利润: ${(orderData.order_price_float - purchase_total_price_float).toFixed(2)}    利润率: ${((orderData.order_price_float - purchase_total_price_float) / orderData.order_price_float * 100).toFixed(2)}%`;
 
-                        if (orderData.order_price_float > purchase_total_price_float) {
-                            sf_td_4_element.style.color = 'green';
-                            reviewSuccessBtn.disabled = false;
-                        } else {
-                            sf_td_4_element.style.color = 'red';
+                    let page_price_element = doc.querySelector(`#apex_offerDisplay_desktop[data-csa-c-asin="${orderData.order_asin}"] .a-offscreen`);
+                    if (page_price_element) {
+                        const page_price = parseFloat(page_price_element.textContent.trim().match(/[\d.]+/)[0]);
+
+
+                        const coupons_percentage_element = document.createElement('input');
+                        const couponLabelTextElement = doc.querySelector('.couponLabelText');
+                        if (couponLabelTextElement) {
+                            coupons_percentage_element.value = parseInt(couponLabelTextElement.textContent.match(/([\d.]+)%/)[0]);
                         }
-                        orderData.purchase_price_float = purchase_price_float;
-                        orderData.purchase_total_price_float = purchase_total_price_float;
+                        coupons_percentage_element.id = 'coupons_percentage_element';
+                        coupons_percentage_element.type = 'number';
+                        coupons_percentage_element.placeholder = '优惠券百分比';
+                        coupons_percentage_element.addEventListener('keydown', (e) => {if (e.key === 'Enter') {update_price(page_price);}})
+                        sf_td_6_element.appendChild(coupons_percentage_element);
+
+                        const coupons_amount_element = document.createElement('input');
+                        coupons_amount_element.id = 'coupons_amount_element';
+                        coupons_amount_element.placeholder = '优惠券金额';
+                        coupons_amount_element.addEventListener('keydown', (e) => { if (e.key === 'Enter') {update_price(page_price);}})
+                        sf_td_7_element.appendChild(coupons_amount_element);
+                        update_price(page_price);
                     } else {
                         sf_td_1_element.style.color = 'red';
                         sf_td_1_element.textContent = `无法识别采购价,点击跳转至商品详情页`;
                         sf_td_1_element.style.cursor = 'pointer';
                         sf_td_1_element.onclick = function() {
                             window.open(orderData.order_link, '_blank');
+                        }
+                    }
+
+                    // 页面价格
+                    function update_price(page_price) {
+                        let procurement_costs = page_price;
+                        const coupons_amount = document.getElementById('coupons_amount_element').value;
+                        if (coupons_amount){
+                            procurement_costs = procurement_costs - parseFloat(coupons_amount);
+                        }
+                        const coupons_percentage = document.getElementById('coupons_percentage_element').value;
+                        if (coupons_percentage){
+                            procurement_costs = procurement_costs - procurement_costs * (parseFloat(coupons_percentage) / 100);
+                        }
+                        procurement_costs = (procurement_costs * 1.064 + 1).toFixed(2)
+
+                        const profit_amount = (orderData.order_price - procurement_costs).toFixed(2);
+                        const profit_percentage = ((orderData.order_price - procurement_costs) / procurement_costs * 100).toFixed(2);
+
+                        orderData.procurement_costs = procurement_costs;
+
+                        sf_td_1_element.textContent = `页面价: ${page_price}`;
+                        sf_td_2_element.textContent = `采购成本: ${procurement_costs}`;
+                        sf_td_4_element.textContent = `利润:${profit_amount}\n利润率:${profit_percentage}%`;
+
+                        if (orderData.order_price > procurement_costs) {
+                            sf_td_4_element.style.color = 'green';
+                            reviewSuccessBtn.disabled = false;
+                        } else {
+                            sf_td_4_element.style.color = 'red';
+                            reviewSuccessBtn.disabled = true;
                         }
                     }
                 } else {
