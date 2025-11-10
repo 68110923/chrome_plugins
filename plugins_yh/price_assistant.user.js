@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         审核助手 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.7
+// @version      1.0.8
 // @description  审核助手 - 店小秘
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/paid?go=m100*
@@ -264,7 +264,7 @@
         const remarkEncodedParams = new URLSearchParams();
         remarkEncodedParams.set('packageId', orderData.package_id);
         remarkEncodedParams.set('commentType', 'sys_service');
-        remarkEncodedParams.set('content', `${orderData.order_link}\n${orderData.order_asin}\n${orderData.purchase_price_float}`);
+        remarkEncodedParams.set('content', `${orderData.order_link}\n${orderData.order_asin}\n${orderData.page_price}`);
         remarkEncodedParams.set('color', '009926');
         remarkEncodedParams.set('history', '');
         fetch('https://www.dianxiaomi.com/api/dxmPackageComment/add.json', {
@@ -358,7 +358,7 @@
                     let page_price_element = doc.querySelector(`#apex_offerDisplay_desktop[data-csa-c-asin="${orderData.order_asin}"] .a-offscreen`);
                     if (page_price_element) {
                         const page_price = parseFloat(page_price_element.textContent.trim().match(/[\d.]+/)[0]);
-
+                        orderData.page_price = page_price;
 
                         const coupons_percentage_element = document.createElement('input');
                         const couponLabelTextElement = doc.querySelector('.couponLabelText');
