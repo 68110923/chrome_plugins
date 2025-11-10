@@ -116,8 +116,11 @@
         modal.style.borderRadius = '8px';
         modal.style.boxShadow = '0 4px 8px rgba(0,0,0,0.3)';
         modal.style.minWidth = '1200px'; // 调整模态框的最小宽度，可根据需要修改这个值
+        modal.style.minHeight = '100%'; // 调整模态框的最小高度，可根据需要修改这个值
         modal.style.zIndex = '9999';
         modal.style.overflow = 'hidden';
+        modal.style.display = 'flex';
+        modal.style.flexDirection = 'column';
         
         // 标题栏（用于拖动）
         const titleBar = document.createElement('div');
@@ -127,6 +130,7 @@
         titleBar.style.cursor = 'move';
         titleBar.style.borderBottom = '1px solid #ccc';
         titleBar.style.fontWeight = 'bold';
+        titleBar.style.flexShrink = '0';
         
         // 关闭按钮
         const closeBtn = document.createElement('button');
@@ -139,19 +143,22 @@
         closeBtn.style.fontSize = '24px';
         closeBtn.style.cursor = 'pointer';
         closeBtn.style.color = '#666';
+        closeBtn.style.flexShrink = '0';
         closeBtn.onclick = () => modal.remove();
         
         // 内容区域
         const contentDiv = document.createElement('div');
         contentDiv.style.width = '100%';
-        contentDiv.style.height = '100%';
+        contentDiv.style.flex = '1';
         contentDiv.style.overflow = 'auto';
-        contentDiv.style.padding = '10px';
+        contentDiv.style.display = 'flex';
+        contentDiv.style.flexDirection = 'column';
 
         // 审核列表
         const reviewTable = document.createElement('table');
         reviewTable.style.width = '100%';
         reviewTable.style.borderCollapse = 'collapse';
+        reviewTable.style.flexShrink = '0';  // 防止表格被压缩
         // 表体
         const reviewTbody = document.createElement('tbody');
         let tbodyInnerHTML = `
@@ -321,9 +328,9 @@
                     const iframe = document.createElement('iframe');
                     iframe.id = 'amazon_detail_iframe';
                     iframe.style.width = '100%';
-                    iframe.style.height = '100%';
+                    iframe.style.flex = '1';
                     iframe.style.border = 'none';
-                    iframe.style.minHeight = '550px';
+                    iframe.style.minHeight = '400px';
                     iframe.style.display = 'block';
                     iframe.onload = function() {
                         iframe.contentDocument.open();
