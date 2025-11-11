@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         发缺货 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  批量发搜索列表内的缺货
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -43,7 +43,7 @@
     async function batchSendOutOfStock() {
         try {
             // 点击第一个订单的详情按钮
-            const btn_element = document.querySelector('.vxe-table--body-wrapper tr[class="vxe-body--row"] td.col--last a');
+            const btn_element = document.querySelector('.vxe-table--body-wrapper tr[class="vxe-body--row"] td.col--last a:last-child');
             if (!btn_element) {
                 alert('未找到订单详情按钮');
                 return;
