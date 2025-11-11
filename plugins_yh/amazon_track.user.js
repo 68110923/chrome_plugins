@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         亚马逊物流验证
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  亚马逊物流验证工具
 // @author       大大怪将军
 // @match        https://track.amazon.com/*
@@ -9,6 +9,7 @@
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
+// @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_track.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_track.user.js
 // ==/UserScript==
