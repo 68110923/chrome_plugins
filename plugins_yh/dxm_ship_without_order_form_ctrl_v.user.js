@@ -9,8 +9,8 @@
 // @grant        unsafeWindow
 // @grant        GM_log
 // @grant        GM_notification
-// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.js
-// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.js
+// @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js
+// @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js
 // ==/UserScript==
 
 
