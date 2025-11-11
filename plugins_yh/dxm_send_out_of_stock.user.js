@@ -31,7 +31,7 @@
             return;
         }
         insertHtmlToXPath(
-            '//*[@class="search-table-container order-list-table"]/*[@data-measure-status="0"][2]//*[@class="btn-left"]/div',
+            '//*[@class="search-section"]/following-sibling::*[@data-measure-status="0"][2]//*[@class="btn-left"]/div',
             -1,
             `
             <button data-v-11a55e37="" id="batch-send-out-of-stock-btn" class="css-1oz1bg8 ant-btn ant-btn-primary buttons-item" type="button"><!----><span>批量发缺货</span><i data-v-11a55e37="" class="icon_down"></i></button>
