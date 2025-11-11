@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         ASIN->链接 - 店小秘
+// @name         粘贴板>跟踪号 - 店小秘
 // @namespace    http://tampermonkey.net/
 // @version      1.0.6
-// @description  把ASIN转换为链接并粘贴到跟踪号输入框
+// @description  把粘贴板中的跟踪号粘贴到跟踪号输入框
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
 // @grant        GM_addStyle
