@@ -57,77 +57,37 @@
             // 循环处理所有订单
             while (true) {
                 try {
-                    // 获取当前页面的所有SKU
                     const skuElements = document.querySelectorAll('.myj-table .order-sku > a');
-                    
-                    if (skuElements.length === 0) {
-                        console.log('当前页面无SKU，跳过');
-                    } else {
-                        // 处理每个SKU
-                        for (const element of skuElements) {
-                            try {
-                                await element.click();
+
+                    for (const element of skuElements) {
+                        try {
+                            await element.click();
+                            await new Promise(resolve => setTimeout(resolve, 300));
+                            const outOfStockOption = document.evaluate('//*[text()="SHEIN  虚拟发货  缺货"]/ancestor::td/following-sibling::*[1]//*[text()="选择"]',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                            if (outOfStockOption) {
+                                await outOfStockOption.click();
                                 await new Promise(resolve => setTimeout(resolve, 300));
-                                
-                                // 点击"SHEIN 虚拟发货 缺货"选项
-                                const outOfStockOption = document.evaluate(
-                                    '//*[text()="SHEIN  虚拟发货  缺货"]/ancestor::td/following-sibling::*[1]//*[text()="选择"]',
-                                    document,
-                                    null,
-                                    XPathResult.FIRST_ORDERED_NODE_TYPE,
-                                    null
-                                ).singleNodeValue;
-                                
-                                if (outOfStockOption) {
-                                    await outOfStockOption.click();
-                                    await new Promise(resolve => setTimeout(resolve, 200));
-                                }
-                            } catch (error) {
-                                console.error('处理SKU失败:', error);
                             }
-                        }
-                        
-                        // 点击确定按钮
-                        const confirmButton = document.evaluate(
-                            '//*[@type="button"]//*[text()="确定"]',
-                            document,
-                            null,
-                            XPathResult.FIRST_ORDERED_NODE_TYPE,
-                            null
-                        ).singleNodeValue;
-                        
-                        if (confirmButton) {
-                            await confirmButton.click();
-                            await new Promise(resolve => setTimeout(resolve, 1000));
-                            count++;
+                            const confirmButton = document.evaluate('//*[@type="button"]//*[text()="确定"]',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                            if (confirmButton) {
+                                await confirmButton.click();
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                count++;
+                            }
+                        } catch (error) {
+                            console.error('处理SKU失败:', error);
                         }
                     }
-                    
+
                     // 检查是否有下一个订单
-                    const nextButton = document.evaluate(
-                        '//*[@class="updown-order"]/button[not(@disabled)]/*[text()="下一个"]',
-                        document,
-                        null,
-                        XPathResult.FIRST_ORDERED_NODE_TYPE,
-                        null
-                    ).singleNodeValue;
+                    const nextButton = document.evaluate('//*[@class="updown-order"]/button[not(@disabled)]/*[text()="下一个"]',document,null,XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
                     
                     if (nextButton) {
                         await nextButton.click();
                         await new Promise(resolve => setTimeout(resolve, 1000)); // 等待新页面加载
                     } else {
-                        // 没有下一个订单，点击关闭
-                        const closeButton = document.evaluate(
-                            '//*[text()="关闭"]',
-                            document,
-                            null,
-                            XPathResult.FIRST_ORDERED_NODE_TYPE,
-                            null
-                        ).singleNodeValue;
-                        
-                        if (closeButton) {
-                            await closeButton.click();
-                        }
+                        const closeButton = document.evaluate('//*[text()="关闭"]',document,null, XPathResult.FIRST_ORDERED_NODE_TYPE,null).singleNodeValue;
+                        await closeButton.click();
                         break;
                     }
                     
@@ -144,19 +104,6 @@
             alert('批量发缺货失败: ' + error.message);
         }
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     /**
      * 插入HTML并绑定事件
