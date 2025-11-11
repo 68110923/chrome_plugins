@@ -35,7 +35,7 @@
 | 一键下架 - 已售罄 - SHEIN | 一键下架已售罄的商品,或者指定SKC的指定站点                  | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_removed_shelves.user.js) |
 | 发缺货 - 店小秘 | 批量发搜索列表内的缺货                              | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_send_out_of_stock.user.js) |
 | 亚马逊物流验证 | 验证物流单号是否可用                               | track.amazon.com | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_track.user.js) |
-| 粘贴板>跟踪号 - 店小秘 | 把粘贴板中的跟踪号粘贴到跟踪号输入框                             | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.js) |
+| 粘贴板>跟踪号 - 店小秘 | 把粘贴板中的跟踪号粘贴到跟踪号输入框                             | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js) |
 
 
 
