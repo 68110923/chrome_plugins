@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         发缺货 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
-// @description  发缺货 - 店小秘
+// @version      1.0.1
+// @description  批量发搜索列表内的缺货
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
 // @grant        GM_addStyle
