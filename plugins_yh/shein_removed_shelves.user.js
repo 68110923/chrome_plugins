@@ -24,7 +24,6 @@
     }
 
     const siteMapping = {
-        "墨西哥站": {"site_abbr": "shein-mx", "store_type": 1},
         "法国站": {"site_abbr": "shein-fr", "store_type": 1},
         "西班牙站": {"site_abbr": "shein-es", "store_type": 1},
         "德国站": {"site_abbr": "shein-de", "store_type": 1},
@@ -33,7 +32,8 @@
         "瑞典站": {"site_abbr": "shein-se", "store_type": 1},
         "波兰站": {"site_abbr": "shein-pl", "store_type": 1},
         "葡萄牙站": {"site_abbr": "shein-pt", "store_type": 1},
-        "美国站": {"site_abbr": "shein-us", "store_type": 1}
+        "美国站": {"site_abbr": "shein-us", "store_type": 1},
+        "墨西哥站": {"site_abbr": "shein-mx", "store_type": 1},
     };
 
     function addButton() {
