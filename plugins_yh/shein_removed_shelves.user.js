@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         一键下架 - 已售罄 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  一键下架 - 已售罄 - SHEIN
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
@@ -24,6 +24,7 @@
     }
 
     const siteMapping = {
+        "墨西哥站": {"site_abbr": "shein-mx", "store_type": 1},
         "法国站": {"site_abbr": "shein-fr", "store_type": 1},
         "西班牙站": {"site_abbr": "shein-es", "store_type": 1},
         "德国站": {"site_abbr": "shein-de", "store_type": 1},
