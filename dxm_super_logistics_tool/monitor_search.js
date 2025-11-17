@@ -11,7 +11,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // 初始化监控触发
 async function initNetworkMonitor() {
     let orders = await parsePageData();
-    if (orders.length === 0) {showNotification(`检测到 ${orders.length} 条订单`);return;}
+    if (orders.length === 0) {showNotification(`识别到无订单`);return;}
 
     // 发送请求上传数据
     const user = await get_settings();
