@@ -11,6 +11,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 // 初始化监控触发
 async function initNetworkMonitor() {
     let orders = await parsePageData();
+    if (orders.length === 0) {showNotification(`检测到 ${orders.length} 条订单`);return;}
+
     // 发送请求上传数据
     const user = await get_settings();
     const url = `${SF_ERP_URL}/drf/spider/shipment-pre-dxm/bulk_create/`;
@@ -37,7 +39,7 @@ async function initNetworkMonitor() {
         }else if (status >= 200 && status < 300) {
             showNotification(`检测到 ${orders.length} 条订单`);
         }else {
-            showNotification(`检测到 ${orders.length} 条订单，出现未知错误`);
+            showNotification(`检测到 ${orders.length} 条订单，${data.error || '出现未知错误'}`);
         }
     }).catch(error => {
         console.error('请求失败:', error);
