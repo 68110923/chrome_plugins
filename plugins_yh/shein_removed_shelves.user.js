@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         一键下架 - 已售罄 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  一键下架 - 已售罄 - SHEIN
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
+// @match        https://sso.geiwohuo.com/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
