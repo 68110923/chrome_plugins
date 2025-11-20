@@ -152,7 +152,7 @@
 
         while (currentPage <= totalPage) {
             button_log.textContent = totalPage === 1 ? `正在读取第${currentPage}页数据` : `正在读取第${currentPage}/${totalPage}页数据`;
-            await fetch(`https://sellerhub.shein.com/spmp-api-prefix/spmp/product/list?page_num=${currentPage}&page_size=${pageSize}`, {
+            await fetch(`/spmp-api-prefix/spmp/product/list?page_num=${currentPage}&page_size=${pageSize}`, {
                 method: 'POST',
                 credentials: 'include',
                 headers: {
@@ -184,7 +184,7 @@
     // 下架商品
     async function remove(skcNameList, sites) {
 
-        await fetch('https://sellerhub.shein.com/spmp-api-prefix/spmp/product/batch_operate_Shelf_status', {
+        await fetch('/spmp-api-prefix/spmp/product/batch_operate_Shelf_status', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
