@@ -32,7 +32,7 @@
 | 提取品牌词 - 店小秘 - 产品shein | 从页面中提取品牌关键词，特别适用于店小秘-产品-SHEIN            | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/extract_brand_words.user.js)            |
 | 加载全部商品 - 亚马逊 - 搜索页 | 在亚马逊搜索结果页面自动加载所有商品，无需手动点击"下一页",并且移除烦人的广告 | 亚马逊              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_all_products_on_one_page.user.js) |
 | 提取可参加活动的SKC - 已上架 - 商品列表 - SHEIN | 提取已上架商品中可参加活动的SKC,规则:今天0点之前\五百条一个excel文件 | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_extract_product_list.user.js) |
-| 一键下架 - 已售罄 - SHEIN | 一键下架已售罄的商品,或者指定SKC的指定站点                  | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_removed_shelves.user.js) |
+| 批量上下架 - SHEIN | 批量上下架商品,或者指定SKC的指定站点                  | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_removed_shelves.user.js) |
 | 发缺货 - 店小秘 | 批量发搜索列表内的缺货                              | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_send_out_of_stock.user.js) |
 | 亚马逊物流验证 | 验证物流单号是否可用                               | track.amazon.com | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/amazon_track.user.js) |
 | 粘贴板>跟踪号 - 店小秘 | 把粘贴板中的跟踪号粘贴到跟踪号输入框                             | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js) |

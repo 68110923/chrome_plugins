@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         一键上下架 - SHEIN
+// @name         批量上下架 - SHEIN
 // @namespace    http://tampermonkey.net/
 // @version      1.0.4
 // @description  批量上下架商品
