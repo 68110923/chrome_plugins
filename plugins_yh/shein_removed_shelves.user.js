@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         一键下架 - 已售罄 - SHEIN
+// @name         一键上下架 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.3
-// @description  一键下架 - 已售罄 - SHEIN
+// @version      1.0.4
+// @description  批量上下架商品
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
 // @match        https://sso.geiwohuo.com/*
@@ -51,7 +51,7 @@
 
             const mainButton = document.createElement('button');
             mainButton.id = sf_button_id; // 带下拉箭头提示
-            mainButton.textContent = '批量下架 - 寸草不生 ▼'; // 带下拉箭头提示
+            mainButton.textContent = '批量上下架 ▼'; // 带下拉箭头提示
             mainButton.style.width = '100%'; // 宽度与主按钮一致
             mainButton.style.padding = '10px 10px';
             mainButton.style.backgroundColor = '#febd69';
@@ -89,8 +89,20 @@
             checkedButton.style.border = 'none';
             checkedButton.style.textAlign = 'left';
             checkedButton.style.cursor = 'pointer';
+            soldOutButton.style.borderBottom = '1px solid #f0f0f0'; // 分隔线
             checkedButton.onclick = checkedButtonFunction;
             dropdownMenu.appendChild(checkedButton);
+
+            const BulkListingButton = document.createElement('button');
+            BulkListingButton.textContent = '批量上架 - 指定SKC';
+            BulkListingButton.style.width = '100%';
+            BulkListingButton.style.padding = '10px 10px';
+            BulkListingButton.style.backgroundColor = '#fff';
+            BulkListingButton.style.border = 'none';
+            BulkListingButton.style.textAlign = 'left';
+            BulkListingButton.style.cursor = 'pointer';
+            BulkListingButton.onclick = BulkListingButtonFunction;
+            dropdownMenu.appendChild(BulkListingButton);
 
             mainButton.addEventListener('mouseover', function() {dropdownMenu.style.display = 'block';});
             dropdownContainer.addEventListener('mouseout', function(event) {
@@ -101,14 +113,37 @@
         }
     }
 
-    async function checkedButtonFunction() {
+    async function BulkListingButtonFunction() {
         const button_log = document.getElementById(sf_button_id);
 
-        const inputSKCOrg = prompt("[已售罄] - 请输入下架的SKC（换行或制表符分隔）：", '');
+        const inputSKCOrg = prompt("请输入上架的SKC（换行或制表符分隔）：", '');
         if (!inputSKCOrg) {return;}
         const inputSKC = inputSKCOrg.split(/[\n\t]+/).map(item => item.trim()).filter(item => item !== '');
 
-        const inputSitesOrg = prompt("[已售罄] - 请输入下架的站（逗号分隔）：", Object.keys(siteMapping).join(','));
+        const inputSitesOrg = prompt("请输入上架的站（逗号分隔）：", Object.keys(siteMapping).join(','));
+        if (!inputSitesOrg) {return;}
+        const inputSites = inputSitesOrg.split(',')
+            .map(item => item.trim())
+            .filter(siteName => siteMapping[siteName])
+            .map(siteName => siteMapping[siteName]);
+
+        const skcNameList = inputSKC
+        for (let i = 0; i < skcNameList.length; i += 50) {
+            button_log.textContent = `正在上架第${i + 1}到${i + 50}个SKC`;
+            const batch = skcNameList.slice(i, i + 50);
+            await remove(batch, inputSites, 1);
+        }
+        button_log.textContent = `已上架${skcNameList.length}个SKC`;
+    }
+
+    async function checkedButtonFunction() {
+        const button_log = document.getElementById(sf_button_id);
+
+        const inputSKCOrg = prompt("请输入下架的SKC（换行或制表符分隔）：", '');
+        if (!inputSKCOrg) {return;}
+        const inputSKC = inputSKCOrg.split(/[\n\t]+/).map(item => item.trim()).filter(item => item !== '');
+
+        const inputSitesOrg = prompt("请输入下架的站（逗号分隔）：", Object.keys(siteMapping).join(','));
         if (!inputSitesOrg) {return;}
         const inputSites = inputSitesOrg.split(',')
             .map(item => item.trim())
@@ -119,7 +154,7 @@
         for (let i = 0; i < skcNameList.length; i += 50) {
             button_log.textContent = `正在下架第${i + 1}到${i + 50}个SKC`;
             const batch = skcNameList.slice(i, i + 50);
-            await remove(batch, inputSites);
+            await remove(batch, inputSites, 2);
         }
         button_log.textContent = `已下架${skcNameList.length}个SKC`;
     }
@@ -138,7 +173,7 @@
         for (let i = 0; i < skcNameList.length; i += 50) {
             button_log.textContent = `正在下架第${i + 1}到${i + 50}个SKC`;
             const batch = skcNameList.slice(i, i + 50);
-            await remove(batch, inputSites);
+            await remove(batch, inputSites, 2);
         }
         button_log.textContent = `已下架${skcNameList.length}个SKC`;
     }
@@ -181,8 +216,8 @@
     }
 
 
-    // 下架商品
-    async function remove(skcNameList, sites) {
+    // 修改上下架状态
+    async function remove(skcNameList, sites, shelf_state) {
 
         await fetch('/spmp-api-prefix/spmp/product/batch_operate_Shelf_status', {
             method: 'POST',
@@ -190,7 +225,7 @@
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                "shelf_state":2,
+                "shelf_state":shelf_state,  // 2:下架, 1:上架
                 "sites":sites,
                 "skc_names":skcNameList
             })

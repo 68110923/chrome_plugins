@@ -14,6 +14,6 @@
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 
 
-// @require      file:///C:/Users/admin/WebstormProjects/chrome_plugins/plugins_yh/extract_brand_words.user.js
+// @require      file:///C:\Users\admin\WebstormProjects\chrome_plugins\plugins_yh\shein_removed_shelves.user.js
 // ==/UserScript==
 console.log('主脚本已执行');
