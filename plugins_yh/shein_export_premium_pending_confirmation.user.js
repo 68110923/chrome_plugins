@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         导出议价待确认订单 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  导出议价待确认订单
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
