@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         导出议价待确认订单 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  导出议价待确认订单
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
@@ -80,7 +80,7 @@
                 '重新报价币种': null,
             });
         });
-        downloadXlsx(dataAfterCleaning, '新品议价代办(待确认).xlsx', '新品议价代办(待确认)');
+        downloadXlsx(dataAfterCleaning, `批量导出新品议价代办_${new Date().toLocaleDateString().replace(/\//g, '-')}.xlsx`, '新品议价代办(待确认)');
     }
 
     function downloadXlsx(data, filename = 'data.xlsx', sheetName = '新品议价代办(待确认)') {
