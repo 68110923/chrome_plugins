@@ -38,6 +38,7 @@
 | 粘贴板>跟踪号 - 店小秘                    | 把粘贴板中的跟踪号粘贴到跟踪号输入框                       | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js) |
 | 导出议价待确认订单 - SHEIN                | 导出SHEIN店铺中所有议价待确认订单到excel文件              | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_export_premium_pending_confirmation.user.js) |
 | 店小秘审单工具                          | 提供店小秘快捷审核功能                              | 店小秘            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js) |
+| 批量议价 - SHEIN                    | 批量议价价格待办列表               | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_agree_to_negotiate_price.user.js) |
 
 
 
@@ -61,13 +62,19 @@
 ---
 
 ## 📋 后续开发任务
+- 财务部:shein店铺财务详情数据    
+    - 1)提供统一的单店铺下载位置: 把导出的excel直接放在服务器(全部店铺)
+    - 2)提供全部的店铺订单数据: 导出+清洗数据(全部店铺)
+    - 3)提供快速导出店铺订单数据的插件: 一键导出当前店铺的订单数据excel(在店铺内使用)
+
+
+- 妙手批量插件采集  
+
+
 - 运营部:差评履约率
 
 
-- 财务部:shein店铺财务详情数据
-  - 1)提供统一的单店铺下载位置: 把导出的excel直接放在服务器(全部店铺)
-  - 2)提供全部的店铺订单数据: 导出+清洗数据(全部店铺)
-  - 3)提供快速导出店铺订单数据的插件: 一键导出当前店铺的订单数据excel(在店铺内使用)
+
 
 
 - 运营部:核价助手 优化
@@ -79,4 +86,7 @@
 - 采购部:自动拉取 店小秘-待处理 的订单数据
   - 1)每天8点到16点之间每隔2小时拉取一次
   - 2)按"排单模版"导出为excel文件\拆分＋清洗数据\入库
+
+
+
 ---

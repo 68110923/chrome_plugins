@@ -20,8 +20,9 @@
     const sf_button_num = 1;
     const sf_button_id = `sf-removed-shelves-btn-${sf_button_num}`
 
-    if (window.location.href.includes('/#/spmp/commdities/list')) {
-        setTimeout(() => {addButton()}, 500);
+    const targetPaths = ['/#/spmp/commdities/list'];
+    if (targetPaths.some(path => window.location.href.includes(path))) {
+        setTimeout(addButton, 500); // 简化：函数名可直接作为参数，无需箭头函数包裹
     }
 
     const siteMapping = {

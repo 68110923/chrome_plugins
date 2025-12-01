@@ -4,7 +4,6 @@
 // @version      1.0.0
 // @description  开发专用连接脚本
 // @match        *://*/*
-
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -14,6 +13,6 @@
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 
 
-// @require      file:///C:\Users\admin\WebstormProjects\chrome_plugins\plugins_yh\shein_export_premium_pending_confirmation.user.js
+// @require      file:///C:\Users\admin\WebstormProjects\chrome_plugins\plugins_yh\shein_agree_to_negotiate_price.user.js
 // ==/UserScript==
 console.log('主脚本已执行');
