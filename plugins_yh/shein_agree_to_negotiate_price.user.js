@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         批量议价 - SHEIN
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  批量议价商品
 // @author       大大怪将军
 // @match        https://sellerhub.shein.com/*
@@ -58,7 +58,7 @@
             dropdownContainer.appendChild(dropdownMenu);
 
             const soldOutButton = document.createElement('button');
-            soldOutButton.textContent = '同意平台建议价 - 待确认';
+            soldOutButton.textContent = '同意平台建议价';
             soldOutButton.style.width = '100%'; // 宽度与主按钮一致
             soldOutButton.style.padding = '10px 10px';
             soldOutButton.style.backgroundColor = '#fff';
@@ -92,7 +92,10 @@
 
     async function agreeToNegotiatePriceFunction() {
         const logButton = document.getElementById(sf_button_id);
-        const allData = await getAllData(logButton);
+        const searchSKCOrg = prompt("请输入SKC（不输入则处理所有SKC）：", '');
+        const searchSKC = searchSKCOrg.split(/[\n\t ]+/).map(item => item.trim()).filter(item => item !== '');
+        console.log(searchSKC.toString());
+        const allData = await getAllData(logButton, searchSKC);
         const batchSize = 200;
         for (let i = 0; i < allData.length; i += batchSize) {
             logButton.textContent = `正在处理第${i + 1}到${i + batchSize}条`;
@@ -106,12 +109,18 @@
         alert('该功能尚未开发,请联系管理员')
     }
 
-    async function getAllData(button_log) {
+    async function getAllData(button_log, searchSKC=[]) {
         const allSKC = []
         const pageSize = 200
         let totalPage = 1
         let currentPage = 1
 
+        const post_body = {
+            "bargain_status": 1,
+        }
+        if (searchSKC.length > 0) {
+            post_body["skc_name_list"] = searchSKC
+        }
         while (currentPage <= totalPage) {
             button_log.textContent = totalPage === 1 ? `正在读取第${currentPage}页数据` : `正在读取第${currentPage}/${totalPage}页数据`;
             await fetch(`/dpas-api-prefix/dpas/discuss/bargain_page?page_num=${currentPage}&page_size=${pageSize}`, {
@@ -120,9 +129,7 @@
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    "bargain_status": 1,
-                })
+                body: JSON.stringify(post_body)
             })
                 .then(async response => {
                     const data = await response.json();
