@@ -38,7 +38,7 @@
 | 粘贴板>跟踪号 - 店小秘                    | 把粘贴板中的跟踪号粘贴到跟踪号输入框                       | 店小秘              | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_ship_without_order_form_ctrl_v.user.js) |
 | 导出议价待确认订单 - SHEIN                | 导出SHEIN店铺中所有议价待确认订单到excel文件              | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_export_premium_pending_confirmation.user.js) |
 | 店小秘审单工具                          | 提供店小秘快捷审核功能                              | 店小秘            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js) |
-| 批量议价 - SHEIN                    | 批量议价价格待办列表               | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_agree_to_negotiate_price.user.js) |
+| 批量议价 - SHEIN                    | 批量同意平台建议价\                               | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_agree_to_negotiate_price.user.js) |
 
 
 
