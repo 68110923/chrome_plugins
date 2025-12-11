@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         删除图片 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  删除店小秘商品图片
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/album/index.htm
