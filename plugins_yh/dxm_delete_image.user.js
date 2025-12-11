@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         删除图片 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  删除店小秘商品图片
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/album/index.htm
@@ -76,9 +76,9 @@
 
     async function deleteImageFunction() {
         const logButton = document.getElementById(sf_button_id);
-        const inputPageNumber = prompt("请输入要删除的图片页数（从第N页开始删除）：", '0').trim();
-        if (!inputPageNumber || isNaN(inputPageNumber) || parseInt(inputPageNumber) < 0) {
-            alert("请输入一个有效的页数（大于等于0的整数）");
+        const inputPageNumber = prompt("从第N页开始删除(需要大于等于6)：", '6').trim();
+        if (!inputPageNumber || isNaN(inputPageNumber) || parseInt(inputPageNumber) < 6) {
+            alert("请输入一个有效的页数（大于等于6的整数）");
             return;
         }
         const pageNumber = parseInt(inputPageNumber);
