@@ -54,7 +54,7 @@
             dropdownContainer.appendChild(dropdownMenu);
 
             const soldOutButton = document.createElement('button');
-            soldOutButton.textContent = '删除100页之后的图片';
+            soldOutButton.textContent = '删除第N页之后的图片';
             soldOutButton.style.width = '100%'; // 宽度与主按钮一致
             soldOutButton.style.padding = '10px 10px';
             soldOutButton.style.backgroundColor = '#fff';
@@ -76,11 +76,18 @@
 
     async function deleteImageFunction() {
         const logButton = document.getElementById(sf_button_id);
+        const inputPageNumber = prompt("请输入要删除的图片页数（从第N页开始删除）：", '0').trim();
+        if (!inputPageNumber || isNaN(inputPageNumber) || parseInt(inputPageNumber) < 0) {
+            alert("请输入一个有效的页数（大于等于0的整数）");
+            return;
+        }
+        const pageNumber = parseInt(inputPageNumber);
+
         let dataCount = 0;
         logButton.textContent = `处理中...`;
         while (true) {
             const pageRequest = await fetch(
-                'https://www.dianxiaomi.com/album/list.htm?pageNo=100&pageSize=300&name=&fullCid=&startTime=&endTime=&fileType=0'
+                `https://www.dianxiaomi.com/album/list.htm?pageNo=${pageNumber + 1}&pageSize=300&name=&fullCid=&startTime=&endTime=&fileType=0`
                 , {
                     method: 'GET',
                     headers: {
