@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         删除图片 - 店小秘
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
+// @version      1.0.1
 // @description  删除店小秘商品图片
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/album/index.htm
@@ -77,6 +77,7 @@
     async function deleteImageFunction() {
         const logButton = document.getElementById(sf_button_id);
         let dataCount = 0;
+        logButton.textContent = `处理中...`;
         while (true) {
             const pageRequest = await fetch(
                 'https://www.dianxiaomi.com/album/list.htm?pageNo=100&pageSize=300&name=&fullCid=&startTime=&endTime=&fileType=0'
