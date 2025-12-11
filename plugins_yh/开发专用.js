@@ -13,6 +13,6 @@
 // @require      https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js
 
 
-// @require      file:///C:\Users\admin\WebstormProjects\chrome_plugins\plugins_yh\shein_agree_to_negotiate_price.user.js
+// @require      file:///C:\Users\admin\WebstormProjects\chrome_plugins\plugins_yh\dxm_delete_image.js
 // ==/UserScript==
 console.log('主脚本已执行');

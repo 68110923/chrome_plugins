@@ -39,6 +39,7 @@
 | 导出议价待确认订单 - SHEIN                | 导出SHEIN店铺中所有议价待确认订单到excel文件              | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_export_premium_pending_confirmation.user.js) |
 | 店小秘审单工具                          | 提供店小秘快捷审核功能                              | 店小秘            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/price_assistant.user.js) |
 | 批量议价 - SHEIN                    | 批量同意平台建议价\                               | SHEIN            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_agree_to_negotiate_price.user.js) |
+| 删除图片 - 店小秘                    | 删除店小秘商品图片                              | 店小秘            | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_delete_image.user.js) |
 
 
 
