@@ -64,25 +64,13 @@
             }
             return price;
         }
-        function amazonGetDiscountAmount() {
-            // 折扣金额
-            return null
-        }
-        function amazonGetDiscountPercentage() {
-            // 折扣比例
-            const discountPercentageXpath = [
-                '//*[@class="promoPriceBlockMessage"]//*[starts-with(@id, "couponTextpctch")]', // 白色背景绿色字体 勾选的
-                // '//*[@class="promoPriceBlockMessage"]//*[starts-with(@id, "greenBadgepctch")]', // 绿色背景褐色字体的
-            ]
-            const discountPercentageElement = document.evaluate(discountPercentageXpath.join(' | '), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue;
-            return discountPercentageElement ? discountPercentageElement.textContent.match(/[0-9.]+%/)[0].trim() : null;
-        }
         function amazonGetDiscount() {
             const discountXpath = [
                 '//*[@class="promoPriceBlockMessage"]//*[starts-with(@id, "couponTextpctch")]', // 白色背景绿色字体 勾选的
                 // '//*[@class="promoPriceBlockMessage"]//*[starts-with(@id, "greenBadgepctch")]', // 绿色背景褐色字体的
             ]
             const existDiscount = document.evaluate(discountXpath.join(' | '), document, null, XPathResult.FIRST_ORDERED_NODE_TYPE, null).singleNodeValue
+            // return existDiscount ? existDiscount.textContent.match(/[0-9.]+%/)[0].trim() : null;
             return existDiscount ? '有' : null
         }
         const dataInfo = [
@@ -121,7 +109,7 @@
             if (subSkuItems.length > 0) {skuSet.add(`${subSkuItems.join('')}:`);}
         });
         if (!skuSet.size) {
-            skuSet.add('');
+            skuSet.add(':');
         }
         const inputElements = document.querySelectorAll('textarea[placeholder="请输入内容"]');
         inputElements.forEach((inputElement) => {
