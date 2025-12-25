@@ -109,7 +109,7 @@
             if (subSkuItems.length > 0) {skuSet.add(`${subSkuItems.join('')}:`);}
         });
         if (!skuSet.size) {
-            skuSet.add(':');
+            skuSet.add('_:');
         }
         const inputElements = document.querySelectorAll('textarea[placeholder="请输入内容"]');
         inputElements.forEach((inputElement) => {
