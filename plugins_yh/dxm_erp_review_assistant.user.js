@@ -2,10 +2,11 @@
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
 // @version      1.0.0
-// @description  1)店小秘自动添加初始备注, 2)亚马逊商品数据提取
+// @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
 // @match        https://www.amazon.com/*
+// @match        https://www.tiktok.com/view/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -36,7 +37,7 @@
         const shortcut_keys = ['q', 'Q'];
         if (e.altKey && shortcut_keys.includes(e.key) && document.URL.match(/https:\/\/www\.amazon\..*?\/[0-9A-Z]{10}/)) {
             extractAmazonNotes();
-        } else if (e.altKey && shortcut_keys.includes(e.key) && document.URL.match(/https:\/\/www\.amazon\..*?\/B0[0-9A-Z]{8}/)) {
+        } else if (e.altKey && shortcut_keys.includes(e.key) && document.URL.match(/https:\/\/www\.tiktok\.com\/.*?\//)) {
             extractTiktokNotes();
         }
     });
@@ -73,22 +74,60 @@
             // return existDiscount ? existDiscount.textContent.match(/[0-9.]+%/)[0].trim() : null;
             return existDiscount ? '有' : null
         }
-        const dataInfo = [
-            '  采购平台: Amazon',
-            `  商品链接: ${amazonGetUrl()}`,
-            `  商品标识: ${amazonGetAsin()}`,
-            `  商品价格: ${amazonGetPrice()}`,
-        ]
+        const dataDict = {
+            '  采购平台': 'Amazon',
+            '  商品链接': amazonGetUrl(),
+            '  商品标识': amazonGetAsin(),
+            '  商品价格': amazonGetPrice(),
+        }
         const isAmazonDiscount = amazonGetDiscount();
         if (isAmazonDiscount) {
-            dataInfo.push(`  优惠券: ${isAmazonDiscount}`);
+            dataDict['  优惠券'] = isAmazonDiscount;
         }
-        copyToClipboard(dataInfo.join('\n'));
+        const dataList = Object.entries(dataDict).map(([key, value]) => `${key}: ${value}`);
+        copyToClipboard(dataList.join('\n'));
     }
 
-
     function extractTiktokNotes() {
-        console.log('extractTiktokNotes 执行成功');
+        function tiktokGetUrl() {
+            const urlObj = new URL(document.URL);
+            let productId = urlObj.searchParams.get('product_id');
+            if (!productId) {
+                productId = urlObj.pathname.match(/\d{16,20}/)[0];
+            }
+            return `https://www.tiktok.com/view/product/${productId}`;
+        }
+        function tiktokGetLogo() {
+            // 购买页面的商品标识
+            let logoElement = document.querySelector('[class^="index-goods__specification--"]');
+            if (logoElement) {
+                return logoElement.textContent.trim();
+            }
+
+            // 商品详情页面的商品标识
+            const logoElements = [...document.querySelectorAll('div.border-color-UIShapeNeutral > span')].map((element) => element.textContent.trim());
+            return logoElements.join(', ');
+        }
+        function tiktokGetPrice() {
+            // 购买页面的商品价格
+            let priceElement = document.querySelector('[class^="index-goods__price__real--"]');
+            if (priceElement) {
+                return priceElement.textContent.trim();
+            }
+            // 商品详情页面的商品价格
+            priceElement = document.querySelector('div.items-baseline > .items-baseline');
+            if (priceElement) {
+                return priceElement.textContent.trim().match(/[0-9.]+/)[0].trim();
+            }
+        }
+        const dataDict = {
+            '  采购平台': 'TikTok',
+            '  商品链接': tiktokGetUrl(),
+            '  商品标识': tiktokGetLogo(),
+            '  商品价格': tiktokGetPrice(),
+        }
+        const dataList = Object.entries(dataDict).map(([key, value]) => `${key}: ${value}`);
+        copyToClipboard(dataList.join('\n'));
     }
 
     function copyToClipboard(text) {
