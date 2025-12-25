@@ -1,4 +1,5 @@
 > 🔍 快速切换：首页 | [TK代理教程](docs/PROXY_TIKTOK.md)
+
 # Chrome 插件使用指南
 
 本指南将帮助您安装和使用我们的Chrome浏览器插件，提升您的工作效率。
