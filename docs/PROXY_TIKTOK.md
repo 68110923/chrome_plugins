@@ -18,3 +18,4 @@
 访问TikTok页面，看是否生效。如果生效，说明配置成功。
 
 https://www.tiktok.com/t/ZTHKx9GRMg4kg-fFmud/
+
