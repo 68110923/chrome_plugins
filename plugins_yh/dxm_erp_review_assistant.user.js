@@ -156,24 +156,22 @@
         );
     }
 
-    function showToast(message) {
+    function showToast(message, animationEffectDuration=150, toastDuration=3000) {
         GM_addStyle(
             `/* 弹窗提示优化 */
             .sf_pop_up_message {
                 position: fixed;
-                top: 10px;
-                right: 300px;
+                top: 1%;
+                right: 2%;
                 padding: 12px 20px;
-                background: #1e293b;
-                color: #f8fafc;
+                box-shadow: 0 4px 20px rgba(50, 50, 80, 0.15);
                 border-radius: 6px;
                 z-index: 99999;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
                 font-size: 14px;
                 font-weight: 500;
                 opacity: 0;
                 transform: translateX(100%);
-                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                transition: all ${animationEffectDuration/1000}s cubic-bezier(0.4, 0, 0.2, 1);
                 line-height: 1.5;
                 white-space: normal;
                 word-wrap: break-word;
@@ -186,16 +184,20 @@
             }`
         )
         const className = 'sf_pop_up_message';
-        const existingToast = document.querySelector(`.${className}`);
-        if (existingToast) existingToast.remove();
         const sfPopUpMessageElement = document.createElement("div");
-        sfPopUpMessageElement.className = className; // 使用优化后的类名
+        // 随机弹窗和字体颜色
+        sfPopUpMessageElement.style.background = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},0.6)`;
+        sfPopUpMessageElement.style.color = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)}, 0.95)`;
+        // 白底黑字
+        // sfPopUpMessageElement.style.background = `rgba(255,255,255,0.95)`;
+        // sfPopUpMessageElement.style.color = `rgba(0,0,0)`;
+        sfPopUpMessageElement.className = className;
         sfPopUpMessageElement.innerHTML = message.replace(/\n/g, '<br>');
         document.body.appendChild(sfPopUpMessageElement);
-        setTimeout(() => sfPopUpMessageElement.classList.add('show'), 1);
+        setTimeout(() => sfPopUpMessageElement.classList.add('show'), 0);
         setTimeout(() => {
             sfPopUpMessageElement.classList.remove('show');
-            setTimeout(() => sfPopUpMessageElement.remove(), 1000);
-        }, 3000);
+            setTimeout(() => sfPopUpMessageElement.remove(), animationEffectDuration);
+        }, toastDuration);
     }
 })();
