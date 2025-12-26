@@ -7,6 +7,7 @@
 // @match        https://www.dianxiaomi.com/web/order/*
 // @match        https://www.amazon.com/*
 // @match        https://www.tiktok.com/view/*
+// @match        https://www.tiktok.com/shop/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
