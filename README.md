@@ -1,4 +1,5 @@
-> 🔍 快速切换：首页 | [TK代理教程](docs/PROXY_TIKTOK.md)
+> 🔍 快速切换：首页 | [TK代理教程](/docs/PROXY_TIKTOK.md) | [物流中心教程](/docs/LOGISTICS_CENTER.md)
+
 
 # Chrome 插件使用指南
 
