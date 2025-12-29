@@ -1,6 +1,6 @@
 > 🔍 快速切换：[首页](/README.md) | [TK代理教程](/docs/PROXY_TIKTOK.md) | 物流中心教程
 
-# 🦝 [小浣熊ERP](https://samforo.icu/) - 物流中心 使用教程
+# 🦝 [小浣熊ERP官网](https://samforo.icu/) - 物流中心 使用教程
 
 ## 使用步骤
 
