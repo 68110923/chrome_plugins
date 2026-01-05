@@ -1,7 +1,6 @@
 > 🔍 快速切换：[首页](/README.md) | [TK代理教程](/docs/PROXY_TIKTOK.md) | 物流中心教程
 
 # 🦝 [小浣熊ERP官网](https://samforo.icu/) - 物流中心 使用教程
-![img.png](/docs/image/README/公司支付宝.png)
 
 ## 🚀 使用步骤
 1. 下载模板: [物流中心导入模板.xlsx](https://github.com/68110923/chrome_plugins/raw/main/docs/image/LOGISTICS_CENTER/物流中心导入模板.xlsx) *(右键另存为下载)*
@@ -45,3 +44,6 @@
 ---
 ## 📞 支持
 * **技术支持V**: 68110923
+* **开账号联系V**: 68110923
+* **支付宝充值**:
+  - ![img.png](/docs/image/README/公司支付宝.png)
