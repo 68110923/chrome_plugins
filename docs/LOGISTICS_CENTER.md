@@ -1,6 +1,6 @@
 > 🔍 快速切换：[首页](/README.md) | [TK代理教程](/docs/PROXY_TIKTOK.md) | 物流中心教程
 
-# 🦝 [小浣熊ERP官网](https://samforo.icu/) - 物流中心 使用教程
+# 🦝 [小浣熊ERP官网](https://samforo.icu/) - 定制物流,17track可查询
 
 ## 🚀 使用步骤
 1. 下载模板: [物流中心导入模板.xlsx](https://github.com/68110923/chrome_plugins/raw/main/docs/image/LOGISTICS_CENTER/物流中心导入模板.xlsx) *(右键另存为下载)*
@@ -40,10 +40,14 @@
 **已发货物流界面**
 ![已发货物流.png](image/LOGISTICS_CENTER/%E5%B7%B2%E5%8F%91%E8%B4%A7%E7%89%A9%E6%B5%81.png)
 
+---
+## 💰 资费说明
+* **每条物流**: 3 CNY
+* **支付宝充值**: 请备注充值账号, 或者联系68110923发送支付成功截图
+    - ![img.png](/docs/image/README/公司支付宝.png)
 
 ---
 ## 📞 支持
 * **技术支持V**: 68110923
 * **开通账号联系V**: 68110923
-* **支付宝充值**: 请备注充值账号, 或者联系68110923发送支付成功截图
-  - ![img.png](/docs/image/README/公司支付宝.png)
+
