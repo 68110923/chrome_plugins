@@ -31,7 +31,7 @@
 | KLTX1 | YBang | 9452411190 | United States（二字代码US） | Plano | Texas (缩写TX) | 6829 K AVENUE Suite 102 | 75074 |
 
 **面单样例**
-![面单样例.png](image/LOGISTICS_CENTER/%E9%9D%A2%E5%8D%95%E6%A0%B7%E4%BE%8B.png)
+- ![面单样例.png](image/LOGISTICS_CENTER/%E9%9D%A2%E5%8D%95%E6%A0%B7%E4%BE%8B.png)
 
 ## 📝 轨迹说明
 * **特殊轨迹**: `已揽收`
