@@ -1,13 +1,14 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.0
-// @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取
+// @version      1.0.1
+// @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
 // @match        https://www.amazon.com/*
 // @match        https://www.tiktok.com/view/*
 // @match        https://www.tiktok.com/shop/*
+// @match        https://detail.1688.com/offer/*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -40,8 +41,33 @@
             extractAmazonNotes();
         } else if (e.altKey && shortcut_keys.includes(e.key) && document.URL.match(/https:\/\/www\.tiktok\.com\/.*?\//)) {
             extractTiktokNotes();
+        } else if (e.altKey && shortcut_keys.includes(e.key) && document.URL.match(/https:\/\/detail\.1688\.com\/offer\/\d+\.html/)) {
+            extract1688Notes();
         }
     });
+
+    function extract1688Notes() {
+        const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
+        const priceElement = document.querySelector('.total-price > strong');
+        const price = priceElement ? priceElement.textContent.trim().match(/[0-9.]+/)[0].trim() : null;
+        const specification1 = document.querySelector('#cartScrollBar > #skuSelection .active > .label-name');
+        const specification1Name = specification1 ? specification1.textContent.trim() : null;
+        const specification2s = document.querySelectorAll('#cartScrollBar > #skuSelection input[aria-valuenow]');
+        const specificationLis = Array.from(specification2s).map(specification2 => {
+            const specification2Name = specification2.closest('.expand-view-item').querySelector('.item-label').getAttribute('title').trim();
+            const skuName = [specification1Name, specification2Name].filter(Boolean).join('|');
+            return `${skuName}*${specification2.value}`;
+        });
+        console.log(specificationLis);
+        const dataDict = {
+            '  采购平台': '1688',
+            '  商品链接': urlMatch ? urlMatch[0] : null,
+            '  商品标识': specificationLis.join(','),
+            '  商品价格': price,
+        }
+        const dataList = Object.entries(dataDict).map(([key, value]) => `${key}: ${value}`);
+        copyToClipboard(dataList.join('\n'));
+    }
 
     function extractAmazonNotes() {
         function amazonGetAsin() {
@@ -187,11 +213,14 @@
         const className = 'sf_pop_up_message';
         const sfPopUpMessageElement = document.createElement("div");
         // 随机弹窗和字体颜色
-        sfPopUpMessageElement.style.background = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},0.6)`;
-        sfPopUpMessageElement.style.color = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)}, 0.95)`;
+        // sfPopUpMessageElement.style.background = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)})`;
+        // sfPopUpMessageElement.style.color = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)}, 0.95)`;
         // 白底黑字
-        // sfPopUpMessageElement.style.background = `rgba(255,255,255,0.95)`;
+        // sfPopUpMessageElement.style.background = `rgba(255,255,255,0.9)`;
         // sfPopUpMessageElement.style.color = `rgba(0,0,0)`;
+        // 黑底白字
+        sfPopUpMessageElement.style.background = `rgba(0,0,0,0.9)`;
+        sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
         sfPopUpMessageElement.className = className;
         sfPopUpMessageElement.innerHTML = message.replace(/\n/g, '<br>');
         document.body.appendChild(sfPopUpMessageElement);
