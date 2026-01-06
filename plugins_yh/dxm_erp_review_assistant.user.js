@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -48,8 +48,12 @@
 
     function extract1688Notes() {
         const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
-        const priceElement = document.querySelector('.total-price > strong');
-        const price = priceElement ? priceElement.textContent.trim().match(/[0-9.]+/)[0].trim() : null;
+        const priceElement = document.querySelector('#submitOrder .total-price > strong');
+        const price = priceElement ? priceElement.textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
+        const freightElement = document.querySelector('#submitOrder .total-freight-fee .currency');
+        const freight = freightElement ? freightElement.textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
+        const totalPrice = (parseFloat(price) + parseFloat(freight)).toFixed(2);
+
         const specification1 = document.querySelector('#cartScrollBar > #skuSelection .active > .label-name');
         const specification1Name = specification1 ? specification1.textContent.trim() : null;
         const specification2s = document.querySelectorAll('#cartScrollBar > #skuSelection input[aria-valuenow]');
@@ -63,7 +67,7 @@
             '  采购平台': '1688',
             '  商品链接': urlMatch ? urlMatch[0] : null,
             '  商品标识': specificationLis.join(','),
-            '  商品价格': price,
+            '  商品价格': totalPrice,
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `${key}: ${value}`);
         copyToClipboard(dataList.join('\n'));
