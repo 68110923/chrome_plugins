@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.3
+// @version      1.0.4
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -46,27 +46,67 @@
     });
 
     function extract1688Notes() {
-        const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
-        const priceElement = document.querySelector('#submitOrder .total-price > strong');
-        const price = priceElement ? priceElement.textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
-        const freightElement = document.querySelector('#submitOrder .total-freight-fee .currency');
-        const freight = freightElement ? freightElement.textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
-        const totalPrice = (parseFloat(price) + parseFloat(freight)).toFixed(2);
+        function getTotalPrice() {
+            const priceElements = Object.values({
+                '常规': document.querySelector('#submitOrder .total-price > strong'),
+                'https://detail.1688.com/offer/927463287246.html': document.querySelector('.gyp-order-price-text'),
+                'https://detail.1688.com/offer/746259328464.html': document.querySelector('.total-price > div > .value'),
+            }).filter(Boolean)
+            console.log(priceElements)
+            const price = priceElements.length > 0 ? priceElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
 
-        const specification1 = document.querySelector('#cartScrollBar > #skuSelection .active > .label-name');
-        const specification1Name = specification1 ? specification1.textContent.trim() : null;
-        const specification2s = document.querySelectorAll('#cartScrollBar > #skuSelection input[aria-valuenow]');
-        const specificationLis = Array.from(specification2s).map(specification2 => {
-            const specification2Name = specification2.closest('.expand-view-item').querySelector('.item-label').getAttribute('title').trim();
-            const skuName = [specification1Name, specification2Name].filter(Boolean).join('|');
-            return `${skuName}*${specification2.value}`;
-        });
-        console.log(specificationLis);
+            const freightElements = Object.values({
+                '常规': document.querySelector('#submitOrder .total-freight-fee .currency'),
+                'https://detail.1688.com/offer/927463287246.html': document.querySelector('.delivery-box > span > span'),
+                'https://detail.1688.com/offer/746259328464.html': document.querySelector('.postage-value > .value'),
+            }).filter(Boolean)
+            const freight = freightElements.length > 0 ? freightElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
+
+            return (parseFloat(price) + parseFloat(freight)).toFixed(2);
+        }
+
+        function getProductSku(){
+            // 常规方案
+            const sku1Element = document.querySelector('#cartScrollBar > #skuSelection .active > .label-name');
+            const sku1Name = sku1Element ? sku1Element.textContent.trim() : null;
+            const sku2Elements = document.querySelectorAll('#cartScrollBar > #skuSelection input[aria-valuenow]');
+            let skuList = Array.from(sku2Elements).map(sku2 => {
+                const sku2Name = sku2.closest('.expand-view-item').querySelector('.item-label').getAttribute('title').trim();
+                const skuName = [sku1Name, sku2Name].filter(Boolean).join('|');
+                return `${skuName}*${sku2.value}`;
+            });
+            if (skuList.length === 0) {
+                // https://detail.1688.com/offer/927463287246.html
+                const allPropertyElements = document.querySelectorAll('.sku-props-list > .item-selected > .prop-item-text')
+                const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim());
+                const countElement = document.querySelector('.gyp-order-num-text');
+                const count = countElement ? countElement.textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
+                if (allProperty && count) {
+                    skuList.push(`${allProperty.join('|')}*${count}`)
+                }
+            }
+            if (skuList.length === 0) {
+                // https://detail.1688.com/offer/746259328464.html
+                const skuElements = document.querySelectorAll('#sku-count-widget-wrapper > .sku-item-wrapper');
+                skuList = Array.from(skuElements).map(skuElement => {
+                    const count = skuElement.querySelector('input').value;
+                    console.log('count: ', count)
+                    if (parseInt(count) > 0) {
+                        const skuName = skuElement.querySelector('.sku-item-name').textContent.trim();
+                        return `${skuName}*${count}`;
+                    }
+                });
+            }
+
+            return skuList.filter(Boolean).join(',')
+        }
+
+        const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
         const dataDict = {
             '  采购平台': '1688',
             '  商品链接': urlMatch ? urlMatch[0] : null,
-            '  商品标识': specificationLis.join(','),
-            '  商品价格': totalPrice,
+            '  商品标识': getProductSku(),
+            '  商品价格': getTotalPrice(),
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `${key}: ${value}`);
         copyToClipboard(dataList.join('\n'));
