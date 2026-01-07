@@ -17,18 +17,18 @@
 ---
 ## 📦 发货仓库
 **如果需要自定义发货仓库, 请联系客服, 提供发货信息**
-- 仓库代码: KLTX1(不知道的话就随便填一个就行)
 - 发货人: YBang
+- 发货人公司: (可以空着)
 - 电话: 9452411190
 - 国家: United States（或二字代码US）
-- 城市: Plano
 - 省份/州: Texas (或缩写TX)
-- 地址:6829 K AVENUE Suite 102
-- 邮编:75074
+- 城市: Plano
+- 地址: 6829 K AVENUE Suite 102
+- 邮编: 75074
 
-| 仓库代码 | 发货人 | 电话 | 国家 | 城市 | 省份/州 | 地址 | 邮编 |
+| 发货人 | 发货人公司 | 电话 | 国家 | 省份/州 | 城市 | 地址 | 邮编 |
 | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-| KLTX1 | YBang | 9452411190 | United States（二字代码US） | Plano | Texas (缩写TX) | 6829 K AVENUE Suite 102 | 75074 |
+| YBang | (可以空着) | 9452411190 | United States（二字代码US） | Texas (缩写TX) | Plano | 6829 K AVENUE Suite 102 | 75074 |
 
 **面单样例**
 - ![面单样例.png](image/LOGISTICS_CENTER/%E9%9D%A2%E5%8D%95%E6%A0%B7%E4%BE%8B.png)
