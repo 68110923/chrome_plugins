@@ -1,8 +1,3 @@
-```
-更新日志:
-2026-01-07: 1) 新增1688商品数据提取, 2) 修复Ozon自动备注无型号问题
-```
-
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
@@ -21,7 +16,6 @@
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
 // ==/UserScript==
-
 
 (function() {
     'use strict';
