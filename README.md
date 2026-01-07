@@ -43,6 +43,7 @@
 | 批量议价 - SHEIN                    | 批量同意平台建议价\                               | SHEIN             | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/shein_agree_to_negotiate_price.user.js) |
 | 删除图片 - 店小秘                    | 删除店小秘商品图片                              | 店小秘               | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_delete_image.user.js) |
 | 店小秘审单助手 - ERP版   |  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取     | 店小秘/Amazon/TikTok | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js) |
+| 批量修改 - OZON   |  1)批量修改OZON商品库存 2)批量修改OZON商品价格..暂未开发 | OZON | [安装](https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/ozon_0_modify_inventory.user.js) |
 
 
 
