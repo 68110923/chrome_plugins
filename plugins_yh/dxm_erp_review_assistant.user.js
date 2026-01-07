@@ -1,7 +1,12 @@
+```
+更新日志:
+2026-01-07: 1) 新增1688商品数据提取, 2) 修复Ozon自动备注无型号问题
+```
+
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.2
+// @version      1.0.3
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -171,6 +176,7 @@
 
     function autoFillSku(){
         const skuSet = new Set();
+        // 有型号取型号
         document.querySelectorAll('.ant-modal-content .order-sku__attr').forEach((skuElement) => {
             const subSkuItems = [];
             skuElement.querySelectorAll(':scope > div > div').forEach((subSkuElement) => {
@@ -178,6 +184,15 @@
             });
             if (subSkuItems.length > 0) {skuSet.add(`${subSkuItems.join('')}:`);}
         });
+
+        if (!skuSet.size) {
+            // 无型号取SKU
+            document.querySelectorAll('.ant-modal-content .w280 .pointer').forEach((skuElement) => {
+                const subSkuItems = [];
+                subSkuItems.push(skuElement.textContent.trim());
+                if (subSkuItems.length > 0) {skuSet.add(`${subSkuItems.join('')}:`);}
+            });
+        }
         if (!skuSet.size) {
             skuSet.add('_:');
         }
