@@ -1,8 +1,9 @@
 // ==UserScript==
 // @name         批量修改 - OZON
 // @namespace    http://tampermonkey.net/
-// @version      1.0.1
+// @version      1.0.2
 // @description  1) 批量修改OZON商品库存 2) 批量修改OZON商品价格..暂未开发
+// 2026-01-09 1.0.2 修复: 不能修改库存为0
 // @author       大大怪将军
 // @match        https://seller.ozon.ru/app/products*
 // @grant        GM_addStyle
@@ -89,11 +90,9 @@
     async function myInventoryButtonFunction() {
         const button_log = document.getElementById(sf_button_id);
 
-        const inputCount = prompt("修改为: ", '999');
-        if (!parseInt(inputCount)) {return;}
-        const inputCountInt = parseInt(inputCount);
+        const inputCountInt = parseInt(prompt("修改为: ", '999'));
+        if (isNaN(inputCountInt)) {alert('请输入正整数或0');return;}
         let offerIds = [...document.querySelectorAll('tbody > tr > td span[title][data-widget]')].map(span => span.getAttribute('title'));
-        // offerIds = offerIds.slice(0, 2);    // 测试数据不多, 只修改前2个
         const baseInfo = await getBaseAccountInfo();
         await fetch(
             `/api/site/item-stock-service/rfbs/item/stock/batch-set`,
@@ -116,7 +115,6 @@
             .then(response => response.json())
             .then(data => {console.log(data);})
             .catch(error => console.log(error));
-
         button_log.textContent = `${offerIds.length}个商品库存修改${inputCountInt}`;
     }
 
