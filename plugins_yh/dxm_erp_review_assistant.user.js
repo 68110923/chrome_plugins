@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.5
+// @version      1.0.6
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -51,6 +51,7 @@
                 '常规': document.querySelector('#submitOrder .total-price > strong'),
                 'https://detail.1688.com/offer/927463287246.html': document.querySelector('.gyp-order-price-text'),
                 'https://detail.1688.com/offer/746259328464.html': document.querySelector('.total-price > div > .value'),
+                'https://detail.1688.com/offer/735420835508.html': document.querySelector('.list-bar > [class="float-left"]:nth-of-type(2) > .num'),
             }).filter(Boolean)
             console.log(priceElements)
             const price = priceElements.length > 0 ? priceElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
@@ -59,6 +60,7 @@
                 '常规': document.querySelector('#submitOrder .total-freight-fee .currency'),
                 'https://detail.1688.com/offer/927463287246.html': document.querySelector('.delivery-box > span > span'),
                 'https://detail.1688.com/offer/746259328464.html': document.querySelector('.postage-value > .value'),
+                'https://detail.1688.com/offer/735420835508.html': document.querySelector('.delivery-info .delivery-value'),
             }).filter(Boolean)
             const freight = freightElements.length > 0 ? freightElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
 
@@ -75,8 +77,9 @@
                 const skuName = [sku1Name, sku2Name].filter(Boolean).join('|');
                 return `${skuName}*${sku2.value}`;
             });
+
+            // https://detail.1688.com/offer/927463287246.html
             if (skuList.length === 0) {
-                // https://detail.1688.com/offer/927463287246.html
                 const allPropertyElements = document.querySelectorAll('.sku-props-list > .item-selected > .prop-item-text')
                 const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim());
                 const countElement = document.querySelector('.gyp-order-num-text');
@@ -85,8 +88,9 @@
                     skuList.push(`${allProperty.join('|')}*${count}`)
                 }
             }
+
+            // https://detail.1688.com/offer/746259328464.html
             if (skuList.length === 0) {
-                // https://detail.1688.com/offer/746259328464.html
                 const skuElements = document.querySelectorAll('#sku-count-widget-wrapper > .sku-item-wrapper');
                 skuList = Array.from(skuElements).map(skuElement => {
                     const countElement = skuElement.querySelector('input');
@@ -96,6 +100,22 @@
                     }
                 });
             }
+
+            // https://detail.1688.com/offer/735420835508.html
+            if (skuList.length === 0) {
+                const skuFixedElements = document.querySelectorAll('.filters > .radio-list li.selected > button');
+                const skuFixedText = Array.from(skuFixedElements).map(skuElement => skuElement.getAttribute('title').trim()).join('_');
+                const skuElements = document.querySelectorAll('.next-table-lock > .next-table-inner > .next-table-body tr');
+                skuList = Array.from(skuElements).map(skuElement => {
+                    const countElement = skuElement.querySelector('input');
+                    if (countElement && countElement.value > 0) {
+                        const skuName = skuElement.querySelector('td.first').textContent.trim();
+                        return `${skuFixedText}|${skuName}*${countElement.value}`;
+                    }
+                });
+            }
+
+
 
             return skuList.filter(Boolean).join(',')
         }
