@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.0.8
+// @version      1.0.9
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -91,12 +91,14 @@
 
             // https://detail.1688.com/offer/746259328464.html
             if (skuList.length === 0) {
+                const skuFixedElement = document.querySelector('.prop-item-inner-wrapper.active > .prop-name');
+                const skuFixedText = skuFixedElement ? skuFixedElement.getAttribute('title').trim() : null;
                 const skuElements = document.querySelectorAll('#sku-count-widget-wrapper > .sku-item-wrapper');
                 skuList = Array.from(skuElements).map(skuElement => {
                     const countElement = skuElement.querySelector('input');
                     if (countElement && countElement.value > 0) {
                         const skuName = skuElement.querySelector('.sku-item-name').textContent.trim();
-                        return `${skuName}*${countElement.value}`;
+                        return `${[skuFixedText, skuName].filter(Boolean).join('|')}*${countElement.value}`;
                     }
                 });
             }
