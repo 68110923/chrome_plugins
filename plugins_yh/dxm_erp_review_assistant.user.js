@@ -86,7 +86,7 @@
                 const countElements = document.querySelectorAll('.sku-list-item:has(input:not([value="0"]))');
                 skuList = Array.from(countElements).map(countElement => {
                     const subSku = countElement.querySelector('.sku-item-name-text').getAttribute('title');
-                    const count = countElement.querySelector('input').getAttribute('value');
+                    const count = countElement.querySelector('input').value;
                     return `${allProperty.join('|')}|${subSku}*${count}`
                 });
             }
@@ -206,7 +206,7 @@
 
             // 商品详情页面的商品标识
             const logoElements = [...document.querySelectorAll('div.border-color-UIShapeNeutral > span')].map((element) => element.textContent.trim());
-            return logoElements.join(', ');
+            return logoElements.join(',');
         }
         function tiktokGetPrice() {
             // 购买页面的商品价格
