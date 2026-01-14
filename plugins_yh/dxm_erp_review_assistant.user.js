@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.0
+// @version      1.1.1
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -69,18 +69,23 @@
 
         function getProductSku(){
             // 常规方案
-            const sku1Element = document.querySelector('#cartScrollBar > #skuSelection .active > .label-name');
-            const sku1Name = sku1Element ? sku1Element.textContent.trim() : null;
+            const allPropertyElements = document.querySelectorAll('#cartScrollBar > #skuSelection .active > .label-name');
+            const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim()).filter(Boolean);
             const sku2Elements = document.querySelectorAll('#cartScrollBar > #skuSelection input[aria-valuenow]');
             let skuList = Array.from(sku2Elements).map(sku2 => {
-                const sku2Name = sku2.closest('.expand-view-item').querySelector('.item-label').getAttribute('title').trim();
-                const skuName = [sku1Name, sku2Name].filter(Boolean).join('|');
-                return `${skuName}*${sku2.value}`;
+                console.log('常规方案')
+                const sku2NameElementClosest = sku2.closest('.expand-view-item') || sku2.closest('.ant-table-row');
+                const sku2NameElement = sku2NameElementClosest.querySelector('.item-label') || sku2NameElementClosest.querySelector('.gyp-pro-table-title > p')
+                if (sku2NameElement){
+                    const sku2Name = sku2NameElement.getAttribute('title') || sku2NameElement.textContent.trim();
+                    return `${allProperty.join('|')}|${sku2Name}*${sku2.value}`;
+                }
             });
 
             // https://detail.1688.com/offer/927463287246.html
             // https://detail.1688.com/offer/858885203091.html
-            if (skuList.length === 0) {
+            if (skuList.filter(Boolean).length === 0) {
+                console.log('927463287246')
                 const allPropertyElements = document.querySelectorAll('.sku-props-list > .item-selected > .prop-item-text')
                 const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim());
                 const countElements = document.querySelectorAll('.sku-list-item:has(input:not([value="0"]))');
@@ -92,7 +97,8 @@
             }
 
             // https://detail.1688.com/offer/746259328464.html
-            if (skuList.length === 0) {
+            if (skuList.filter(Boolean).length === 0) {
+                console.log('746259328464')
                 const skuFixedElement = document.querySelector('.prop-item-inner-wrapper.active > .prop-name');
                 const skuFixedText = skuFixedElement ? skuFixedElement.getAttribute('title').trim() : null;
                 const skuElements = document.querySelectorAll('#sku-count-widget-wrapper > .sku-item-wrapper');
@@ -106,7 +112,8 @@
             }
 
             // https://detail.1688.com/offer/735420835508.html
-            if (skuList.length === 0) {
+            if (skuList.filter(Boolean).length === 0) {
+                console.log('735420835508')
                 const skuFixedElements = document.querySelectorAll('.filters > .radio-list li.selected > button');
                 const skuFixedText = Array.from(skuFixedElements).map(skuElement => skuElement.getAttribute('title').trim()).join('_');
                 const skuElements = document.querySelectorAll('.next-table-lock > .next-table-inner > .next-table-body tr');
@@ -120,14 +127,15 @@
             }
 
             // https://detail.1688.com/offer/1008362318683.html 补充:单规格商品
-            if (skuList.length === 0) {
-                const skuElement = document.querySelector('.single-sku-title > .single-sku-item > span:nth-child(2)');
-                const skuContentElement = document.querySelector('.single-price-warp .price-title input');
+            if (skuList.filter(Boolean).length === 0) {
+                console.log('1008362318683')
+                const skuElement = document.querySelector('.single-sku-title > .single-sku-item > span:nth-child(2)') || document.querySelector('.industry-pro-sku-selection-props-panel li:nth-child(1) > span:nth-child(2)');
+                const skuContentElement = document.querySelector('.single-price-warp .price-title input') || document.querySelector('.gyp-pro-table-only-one-sku .ant-input-number-input-wrap > input');
                 if (skuElement && skuContentElement) {
-                    skuList.push(`${skuElement.textContent.trim()}*${skuContentElement.getAttribute('value')}`);
+                    skuList.push(`${skuElement.textContent.trim()}*${skuContentElement.value}`);
                 }
             }
-
+            console.log(skuList);
             return skuList.filter(Boolean).join(',')
         }
 
