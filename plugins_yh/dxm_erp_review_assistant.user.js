@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.2
+// @version      1.1.3
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -29,7 +29,8 @@
     const originalXhrSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function(data) {
         if (this._url.includes('api/order/remark/config/getList.json') && this._method === 'POST' && data === 'type=sys_service') {
-            setTimeout(() => {autoFillSku()}, 20);
+            console.log('获取到的data:', data);
+            // setTimeout(() => {autoFillSku()}, 20);
         }
         return originalXhrSend.apply(this, arguments);
     };
@@ -265,13 +266,12 @@
                 if (subSkuItems.length > 0) {skuSet.add(`${subSkuItems.join('')}:`);}
             });
         }
-        if (!skuSet.size) {
-            skuSet.add('_:');
+        if (skuSet.size) {
+            const inputElements = document.querySelectorAll('textarea[placeholder="请输入内容"]');
+            inputElements.forEach((inputElement) => {
+                inputElement.value = [...skuSet].join('\n\n') + '\n';}
+            );
         }
-        const inputElements = document.querySelectorAll('textarea[placeholder="请输入内容"]');
-        inputElements.forEach((inputElement) => {
-            inputElement.value = [...skuSet].join('\n\n') + '\n';}
-        );
     }
 
     function showToast(message, animationEffectDuration=150, toastDuration=3000) {
