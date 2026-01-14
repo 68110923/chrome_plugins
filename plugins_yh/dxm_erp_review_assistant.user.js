@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.1
+// @version      1.1.2
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -78,7 +78,7 @@
                 const sku2NameElement = sku2NameElementClosest.querySelector('.item-label') || sku2NameElementClosest.querySelector('.gyp-pro-table-title > p')
                 if (sku2NameElement){
                     const sku2Name = sku2NameElement.getAttribute('title') || sku2NameElement.textContent.trim();
-                    return `${allProperty.join('|')}|${sku2Name}*${sku2.value}`;
+                    return `${[...allProperty, sku2Name].filter(Boolean).join('|')}*${sku2.value}`;
                 }
             });
 
