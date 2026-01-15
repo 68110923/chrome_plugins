@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.5
+// @version      1.1.6
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -104,20 +104,20 @@
         const skuOriginal = skuElement.value
         const skuStart = skuOriginal.split('-')[0];
         const ozonId = isPureInt(skuStart) ? skuStart : 'unusual';
-        skuElement.value = `${ozonId}-${productInfo.urlCode}-${storehouse_position}`;
+        skuElement.value = `${ozonId}-${productInfo.urlCode}-${Date.now().toString().slice(-4)}`;
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*${productInfo.count}`;
+        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}`;
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
-        identifierElement.value = `${skuElement.value}-${Date.now()}`;
+        identifierElement.value = `${skuElement.value}-${storehouse_position}`;
+
+        // 来源URL
         if (document.querySelectorAll('input[name="sourceUrl"]').length < 2) {
             document.querySelector('.addSourceUrl').click();
         }
-
-        // 来源URL
         const sourceUrlElements = document.querySelectorAll('input[name="sourceUrl"]');
         const sourceUrls = [`https://www.ozon.ru/product/${ozonId}/`, productInfo.url];
         sourceUrls.forEach((sourceUrl, index) => {
@@ -176,18 +176,18 @@
         const title = titleElement ? titleElement.textContent.trim() : null;
         if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件');return;}
 
-        const productImgElement1 = document.querySelector('.detail-gallery-img[ind="0"]');    // 我自己账号登录的
-        const productImgElement2 = document.querySelector('.od-scroller-list .v-image-cover');    // 测试账号登陆的
-        let productImgUrl = null;
-        if (productImgElement1) {
-            productImgUrl = productImgElement1.getAttribute('src');
-        } else if (productImgElement2) {
-            // background-image: url(&quot;https://cbu01.alicdn.com/img/ibank/O1CN01xcxV041u4ijrgljvv_!!4214345984-0-cib.jpg_b.jpg&quot;);
-            productImgUrl = productImgElement2.getAttribute('style').match(/background-image: url.*?(https:.*?)"/)[1];
-        } else {showToast('提取商品图片失败, 请发网页截图和链接给IT修复插件');return;}
+        // const productImgElement1 = document.querySelector('.detail-gallery-img[ind="0"]');    // 我自己账号登录的
+        // const productImgElement2 = document.querySelector('.od-scroller-list .v-image-cover');    // 测试账号登陆的
+        // let productImgUrl = null;
+        // if (productImgElement1) {
+        //     productImgUrl = productImgElement1.getAttribute('src');
+        // } else if (productImgElement2) {
+        //     // background-image: url(&quot;https://cbu01.alicdn.com/img/ibank/O1CN01xcxV041u4ijrgljvv_!!4214345984-0-cib.jpg_b.jpg&quot;);
+        //     productImgUrl = productImgElement2.getAttribute('style').match(/background-image: url.*?(https:.*?)"/)[1];
+        // } else {showToast('提取商品图片失败, 请发网页截图和链接给IT修复插件');return;}
 
         const dxmProductInfo = {
-            productImgUrl: productImgUrl,
+            // productImgUrl: productImgUrl,   // 不需要图片
             url: urlMatch[0],
             title: title,
             urlCode: urlMatch[1],
