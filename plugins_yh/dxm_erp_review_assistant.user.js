@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.4
+// @version      1.1.5
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -17,12 +17,15 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
+// @require      https://cdn.jsdelivr.net/npm/pinyin-pro@3.27.0/dist/index.min.js
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
 // ==/UserScript==
 
 (function() {
     'use strict';
+    window.pinyinPro = pinyinPro;
+
     const originalXhrOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...args) {
         this._method = method;
@@ -79,29 +82,81 @@
     }
 
     function enterStockInfoToDxm() {
-        const ProductInfo = GM_getValue('dxmProductInfo');
-        if (ProductInfo) {
-            const productName = Object.entries(ProductInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n')
+        const productInfo = GM_getValue('dxmProductInfo');
+        if (productInfo) {
+            const productName = Object.entries(productInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n')
             showToast(`自动输入商品信息:\n\n${productName}`);
         } else {
             showToast('请先到商品详情页提取商品信息!');
         }
 
+        // 商品信息
+        document.querySelector('[uid="goodsInfo"]').click();
+        // 随机生成仓位
         const storehouse_shelves = Math.floor(Math.random() * 15) + 1;
         const storehouse_level = Math.floor(Math.random() * 5) + 1;
         const storehouse_r_l = ['R', 'L'][Math.floor(Math.random() * 2)];
         const storehouse_box = Math.floor(Math.random() * 6) + 1;
         const storehouse_position = `${storehouse_shelves}_${storehouse_level}_${storehouse_r_l}_${storehouse_box}`;
 
-        const skuElement = document.querySelector('#proSku');
-        const skuOrg = skuElement.value
-        const skuStart = skuOrg.split('-')[0];
+        // 商品SKU
+        const skuElement = document.querySelector('input#proSku');
+        const skuOriginal = skuElement.value
+        const skuStart = skuOriginal.split('-')[0];
         const ozonId = isPureInt(skuStart) ? skuStart : 'unusual';
-        skuElement.value = `${ozonId}-${ProductInfo.urlCode}-${storehouse_position}`;
+        skuElement.value = `${ozonId}-${productInfo.urlCode}-${storehouse_position}`;
 
+        // 中文名称
+        const titleZHElement = document.querySelector('input#proName');
+        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*${productInfo.count}`;
 
+        // 识别码
+        const identifierElement = document.querySelector('input#proSbm');
+        identifierElement.value = `${skuElement.value}-${Date.now()}`;
+        if (document.querySelectorAll('input[name="sourceUrl"]').length < 2) {
+            document.querySelector('.addSourceUrl').click();
+        }
 
-        console.log(ozonId);
+        // 来源URL
+        const sourceUrlElements = document.querySelectorAll('input[name="sourceUrl"]');
+        const sourceUrls = [`https://www.ozon.ru/product/${ozonId}/`, productInfo.url];
+        sourceUrls.forEach((sourceUrl, index) => {
+            sourceUrlElements[index].value = sourceUrl;
+        });
+
+        // 商品分类
+        const categoryElement = document.querySelector('#catagoryFullName');
+        const category = categoryElement.textContent;
+
+        document.querySelector('[uid="logisticsPackaging"]').click();
+
+        // 报关中文名
+        const customNameZhElement = document.querySelector('input#nameCn');
+        customNameZhElement.value = category;
+
+        // 报关英文名
+        const customNameEnElement = document.querySelector('input#nameEn');
+        customNameEnElement.value = pinyinPro.convert(category, {
+            toneType: 'none',
+            type: 'pinyin',
+            letterCase: 'firstUpper'
+        });
+        console.log(customNameEnElement.value)
+
+        // 申报金额 0.1-1.5
+        const declarePriceElement = document.querySelector('input#cusPrice');
+        declarePriceElement.value = (Math.random() * (1.5 - 0.1) + 0.1).toFixed(2);
+
+        // 申报重量 15-35 克
+        const declareWeightElement = document.querySelector('input#cusWeight');
+        declareWeightElement.value = (Math.random() * (35 - 15) + 15).toFixed(2);
+
+        // 质检与供货
+        document.querySelector('[uid="qualityInspectionSupply"]').click();
+
+        // 采购参考价
+        const purchasePriceElement = document.querySelector('input#proPrice');
+        purchasePriceElement.value = productInfo.averagePrice;
     }
 
     function createDxmProduct(){
@@ -424,4 +479,5 @@
     function isPureInt(str) {
         return /^\d+$/.test(str);
     }
+
 })();
