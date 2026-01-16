@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.6
+// @version      1.1.7
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -93,22 +93,23 @@
         // 商品信息
         document.querySelector('[uid="goodsInfo"]').click();
         // 随机生成仓位
+        const storehouse_code = 'A';
         const storehouse_shelves = Math.floor(Math.random() * 15) + 1;
         const storehouse_level = Math.floor(Math.random() * 5) + 1;
-        const storehouse_r_l = ['R', 'L'][Math.floor(Math.random() * 2)];
-        const storehouse_box = Math.floor(Math.random() * 6) + 1;
-        const storehouse_position = `${storehouse_shelves}_${storehouse_level}_${storehouse_r_l}_${storehouse_box}`;
+        const storehouse_z_y = ['Z', 'Y'][Math.floor(Math.random() * 2)];
+        const storehouse_box = Math.floor(Math.random() * 8) + 1;
+        const storehouse_position = `${storehouse_code}${storehouse_shelves}_${storehouse_z_y}${storehouse_level}_${storehouse_box}`;
 
         // 商品SKU
         const skuElement = document.querySelector('input#proSku');
         const skuOriginal = skuElement.value
         const skuStart = skuOriginal.split('-')[0];
         const ozonId = isPureInt(skuStart) ? skuStart : 'unusual';
-        skuElement.value = `${ozonId}-${productInfo.urlCode}-${Date.now().toString().slice(-4)}`;
+        skuElement.value = `${ozonId}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}`;
+        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
