@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.8
+// @version      1.1.9
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -101,11 +101,13 @@
         const storehouse_position = `${storehouse_code}${storehouse_shelves}_${storehouse_z_y}${storehouse_level}_${storehouse_box}`;
 
         // 商品SKU
+        const hiddenInfo = document.querySelector('input#hiddenInfo');
+        const dataVid = hiddenInfo.getAttribute('data-vid')
+        // const dataPt = hiddenInfo.getAttribute('data-pt')
+        // const dataShopid = hiddenInfo.getAttribute('data-shopid')
+        // const dataOrderid = hiddenInfo.getAttribute('data-orderid')
         const skuElement = document.querySelector('input#proSku');
-        const skuOriginal = skuElement.value
-        const skuStart = skuOriginal.split('-')[0];
-        const ozonId = isPureInt(skuStart) ? skuStart : 'unusual';
-        skuElement.value = `${ozonId}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
+        skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
 
         document.querySelector('#catagoryFullName').click();
         document.querySelector('[title="家居日用"]').click();
@@ -123,7 +125,7 @@
             document.querySelector('.addSourceUrl').click();
         }
         const sourceUrlElements = document.querySelectorAll('input[name="sourceUrl"]');
-        const sourceUrls = [`https://www.ozon.ru/product/${ozonId}/`, productInfo.url];
+        const sourceUrls = [`https://www.ozon.ru/product/${dataVid}/`, productInfo.url];
         sourceUrls.forEach((sourceUrl, index) => {
             sourceUrlElements[index].value = sourceUrl;
         });
@@ -141,12 +143,11 @@
         // 报关英文名
         const customNameEnElement = document.querySelector('input#nameEn');
         customNameEnElement.value = 'necessary'
-            // customNameEnElement.value = pinyinPro.convert(category, {
+        // customNameEnElement.value = pinyinPro.convert(category, {
         //     toneType: 'none',
         //     type: 'pinyin',
         //     letterCase: 'firstUpper'
         // });
-        console.log(customNameEnElement.value)
 
         // 申报金额 0.1-1.5
         const declarePriceElement = document.querySelector('input#cusPrice');
@@ -162,6 +163,8 @@
         // 采购参考价
         const purchasePriceElement = document.querySelector('input#proPrice');
         purchasePriceElement.value = productInfo.averagePrice;
+
+        document.querySelector('[uid="goodsInfo"]').click();
     }
 
     function createDxmProduct(){
@@ -181,18 +184,7 @@
         const title = titleElement ? titleElement.textContent.trim() : null;
         if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件');return;}
 
-        // const productImgElement1 = document.querySelector('.detail-gallery-img[ind="0"]');    // 我自己账号登录的
-        // const productImgElement2 = document.querySelector('.od-scroller-list .v-image-cover');    // 测试账号登陆的
-        // let productImgUrl = null;
-        // if (productImgElement1) {
-        //     productImgUrl = productImgElement1.getAttribute('src');
-        // } else if (productImgElement2) {
-        //     // background-image: url(&quot;https://cbu01.alicdn.com/img/ibank/O1CN01xcxV041u4ijrgljvv_!!4214345984-0-cib.jpg_b.jpg&quot;);
-        //     productImgUrl = productImgElement2.getAttribute('style').match(/background-image: url.*?(https:.*?)"/)[1];
-        // } else {showToast('提取商品图片失败, 请发网页截图和链接给IT修复插件');return;}
-
         const dxmProductInfo = {
-            // productImgUrl: productImgUrl,   // 不需要图片
             url: urlMatch[0],
             title: title,
             urlCode: urlMatch[1],
@@ -479,10 +471,6 @@
             sfPopUpMessageElement.classList.remove('show');
             setTimeout(() => sfPopUpMessageElement.remove(), animationEffectDuration);
         }, toastDuration);
-    }
-
-    function isPureInt(str) {
-        return /^\d+$/.test(str);
     }
 
 })();
