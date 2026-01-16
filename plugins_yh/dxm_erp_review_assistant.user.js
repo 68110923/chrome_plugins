@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.0
+// @version      1.2.1
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -84,26 +84,38 @@
     function enterStockInfoToDxm() {
         const productInfo = GM_getValue('dxmProductInfo');
         if (productInfo) {
-            const productName = Object.entries(productInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n')
-            showToast(`自动输入商品信息:\n\n${productName}`);
+            // const productName = Object.entries(productInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n')
+            // showToast(`自动输入商品信息:\n\n${productName}`);
+            console.log(productInfo);
         } else {
-            showToast('请先到商品详情页提取商品信息!');
+            showToast('请先到商品详情页提取商品信息!', undefined,undefined,'warning');
         }
 
         const groupSkuSelect = []
         let groupCount = 0;
-        document.querySelectorAll('[uid="groupSkuSelect"] tr').forEach(trElement => {
+        const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
+        const groupElements = document.querySelectorAll('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] tr')
+        if (isGroup && groupElements.length === 0) {
+            showToast('请先添加组合的商品!', undefined,undefined,'error');
+            return;
+        }
+
+        let isReturn = false;
+        groupElements.forEach(trElement => {
             const code = trElement.querySelector('.f-black').textContent.split('-').pop();
             const countElement = trElement.querySelector('input#num');
-            const count = countElement.value || 0
-            if (count === 0) {
-                alert(`请输入${code}的数量`);
+            const count = countElement.value || 0;
+            if (!count) {
+                isReturn = true;
                 return;
             }
             groupCount += Number(count);
             groupSkuSelect.push(`${code}*${count}`)
         });
-        console.log(groupSkuSelect);
+        if (isReturn) {
+            showToast('请输入组合商品的数量!', undefined,undefined,'error');
+            return;
+        }
 
         // 商品信息
         document.querySelector('[uid="goodsInfo"]').click();
@@ -122,7 +134,7 @@
         // const dataShopid = hiddenInfo.getAttribute('data-shopid')
         // const dataOrderid = hiddenInfo.getAttribute('data-orderid')
         const skuElement = document.querySelector('input#proSku');
-        if (groupSkuSelect.length > 0) {
+        if (isGroup) {
             skuElement.value = `ZH-${groupSkuSelect.join(',')}`;
         } else {
             skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
@@ -133,15 +145,15 @@
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        if (groupSkuSelect.length > 0) {
-            titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
+        if (isGroup) {
+            titleZHElement.value = `组合-${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
         } else {
             titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
         }
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
-        if (groupSkuSelect.length > 0) {
+        if (isGroup) {
             identifierElement.value = `${skuElement.value}`;
         } else {
             identifierElement.value = `${skuElement.value}-${storehouse_position}`;
@@ -184,7 +196,7 @@
         const declareWeightElement = document.querySelector('input#cusWeight');
         declareWeightElement.value = (Math.random() * (35 - 15) + 15).toFixed(2);
 
-        if (groupSkuSelect.length === 0) {
+        if (!isGroup) {
             // 质检与供货
             document.querySelector('[uid="qualityInspectionSupply"]').click();
 
@@ -193,6 +205,7 @@
             purchasePriceElement.value = productInfo.averagePrice;
         }
         document.querySelector('[uid="goodsInfo"]').click();
+        showToast(`自动输入商品信息 成功`, undefined,undefined,'success');
     }
 
     function createDxmProduct(){
@@ -204,13 +217,13 @@
         const totalPrice = get1688TotalPrice();
 
         const skuAndCount = get1688ProductSku();
-        if (!skuAndCount || skuAndCount.split(',').length > 1) {showToast('请先选择商品型号和数量, 不能同时选择多个型号');return;}
+        if (!skuAndCount || skuAndCount.split(',').length > 1) {showToast('请先选择商品型号和数量, 不能同时选择多个型号', undefined,undefined,'error');return;}
         const lastStarIndex = skuAndCount.lastIndexOf('*');
         const [sku, count] = lastStarIndex === -1 ? [skuAndCount, ''] : [skuAndCount.slice(0, lastStarIndex), skuAndCount.slice(lastStarIndex + 1)];
 
         const titleElement = document.querySelector('.title-content h1') || document.querySelector('[class="title-text"]');
         const title = titleElement ? titleElement.textContent.trim() : null;
-        if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件');return;}
+        if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件', undefined,undefined,'error');return;}
 
         const dxmProductInfo = {
             url: urlMatch[0],
@@ -420,7 +433,7 @@
 
     function copyToClipboard(text) {
         return navigator.clipboard.writeText(text).then(() => {
-            showToast(text);
+            showToast(text, undefined,undefined,'success');
         }).catch(err => {
             alert(`复制失败，请联系Tom反馈!!!\n\n错误信息: ${err}, \n链接: ${document.URL}`);
         });
@@ -453,7 +466,7 @@
         }
     }
 
-    function showToast(message, animationEffectDuration=150, toastDuration=3000) {
+    function showToast(message, animationEffectDuration=150, toastDuration=3000, colorType='info') {
         GM_addStyle(
             `/* 弹窗提示优化 */
             .sf_pop_up_message {
@@ -482,15 +495,19 @@
         )
         const className = 'sf_pop_up_message';
         const sfPopUpMessageElement = document.createElement("div");
-        // 随机弹窗和字体颜色
-        // sfPopUpMessageElement.style.background = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)})`;
-        // sfPopUpMessageElement.style.color = `rgba(${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)},${Math.floor(Math.random() * 256)}, 0.95)`;
-        // 白底黑字
-        // sfPopUpMessageElement.style.background = `rgba(255,255,255,0.9)`;
-        // sfPopUpMessageElement.style.color = `rgba(0,0,0)`;
-        // 黑底白字
-        sfPopUpMessageElement.style.background = `rgba(0,0,0,0.9)`;
-        sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
+        if (colorType === 'success') {
+            sfPopUpMessageElement.style.background = `rgba(40,180,99,0.9)`;
+            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
+        } else if (colorType === 'error') {
+            sfPopUpMessageElement.style.background = `rgba(230,57,57,0.9)`;
+            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
+        } else if (colorType === 'warning') {
+            sfPopUpMessageElement.style.background = `rgba(255,165,0,0.9)`;
+            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
+        } else if (colorType === 'info') {
+            sfPopUpMessageElement.style.background = `rgba(0,0,0,0.9)`;
+            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
+        }
         sfPopUpMessageElement.className = className;
         sfPopUpMessageElement.innerHTML = message.replace(/\n/g, '<br>');
         document.body.appendChild(sfPopUpMessageElement);
