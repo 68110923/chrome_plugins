@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.1
+// @version      1.2.3
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -99,22 +99,16 @@
             showToast('请先添加组合的商品!', undefined,undefined,'error');
             return;
         }
-
-        let isReturn = false;
-        groupElements.forEach(trElement => {
-            const code = trElement.querySelector('.f-black').textContent.split('-').pop();
-            const countElement = trElement.querySelector('input#num');
-            const count = countElement.value || 0;
+        for (let i = 0; i < groupElements.length; i++) {
+            const code = groupElements[i].querySelector('.f-black').textContent.split('-').pop();
+            const countElement = groupElements[i].querySelector('input#num');
+            const count = countElement.value;
             if (!count) {
-                isReturn = true;
+                showToast(`请先输入 ${code} 商品的数量!`, undefined,undefined,'error');
                 return;
             }
             groupCount += Number(count);
             groupSkuSelect.push(`${code}*${count}`)
-        });
-        if (isReturn) {
-            showToast('请输入组合商品的数量!', undefined,undefined,'error');
-            return;
         }
 
         // 商品信息
@@ -146,7 +140,7 @@
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
         if (isGroup) {
-            titleZHElement.value = `组合-${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
+            titleZHElement.value = `组合 >> ${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
         } else {
             titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
         }
@@ -205,7 +199,7 @@
             purchasePriceElement.value = productInfo.averagePrice;
         }
         document.querySelector('[uid="goodsInfo"]').click();
-        showToast(`自动输入商品信息 成功`, undefined,undefined,'success');
+        showToast(`商品信息已自动录入`, undefined,undefined,'success');
     }
 
     function createDxmProduct(){
@@ -433,7 +427,7 @@
 
     function copyToClipboard(text) {
         return navigator.clipboard.writeText(text).then(() => {
-            showToast(text, undefined,undefined,'success');
+            showToast(text, undefined,undefined,'info');
         }).catch(err => {
             alert(`复制失败，请联系Tom反馈!!!\n\n错误信息: ${err}, \n链接: ${document.URL}`);
         });
