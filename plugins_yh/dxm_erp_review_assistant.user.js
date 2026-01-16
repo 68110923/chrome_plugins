@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.7
+// @version      1.1.8
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -107,6 +107,9 @@
         const ozonId = isPureInt(skuStart) ? skuStart : 'unusual';
         skuElement.value = `${ozonId}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
 
+        document.querySelector('#catagoryFullName').click();
+        document.querySelector('[title="家居日用"]').click();
+
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
         titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
@@ -137,11 +140,12 @@
 
         // 报关英文名
         const customNameEnElement = document.querySelector('input#nameEn');
-        customNameEnElement.value = pinyinPro.convert(category, {
-            toneType: 'none',
-            type: 'pinyin',
-            letterCase: 'firstUpper'
-        });
+        customNameEnElement.value = 'necessary'
+            // customNameEnElement.value = pinyinPro.convert(category, {
+        //     toneType: 'none',
+        //     type: 'pinyin',
+        //     letterCase: 'firstUpper'
+        // });
         console.log(customNameEnElement.value)
 
         // 申报金额 0.1-1.5
