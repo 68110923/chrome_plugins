@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.3
+// @version      1.2.4
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -92,6 +92,7 @@
         }
 
         const groupSkuSelect = []
+        const groupSkuSelectTitle = []
         let groupCount = 0;
         const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
         const groupElements = document.querySelectorAll('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] tr')
@@ -102,6 +103,7 @@
         for (let i = 0; i < groupElements.length; i++) {
             const code = groupElements[i].querySelector('.f-black').textContent.split('-').pop();
             const countElement = groupElements[i].querySelector('input#num');
+            const title = groupElements[i].querySelector('.gray-c').textContent.split(' >> ').pop().split('*')[0];
             const count = countElement.value;
             if (!count) {
                 showToast(`请先输入 ${code} 商品的数量!`, undefined,undefined,'error');
@@ -109,6 +111,7 @@
             }
             groupCount += Number(count);
             groupSkuSelect.push(`${code}*${count}`)
+            groupSkuSelectTitle.push(`${title}*${count}`)
         }
 
         // 商品信息
@@ -134,13 +137,15 @@
             skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
         }
 
-        document.querySelector('#catagoryFullName').click();
+        // 商品分类
+        const categorySelectElement = document.querySelector('#catagoryFullName');
+        categorySelectElement.click();
         document.querySelector('[title="家居日用"]').click();
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
         if (isGroup) {
-            titleZHElement.value = `组合 >> ${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
+            titleZHElement.value = `组合共${groupCount}件 >> ${groupSkuSelectTitle.join(',')}`;
         } else {
             titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
         }
@@ -163,10 +168,15 @@
             sourceUrlElements[index].value = sourceUrl;
         });
 
-        // 商品分类
-        const categoryElement = document.querySelector('#catagoryFullName');
-        const category = categoryElement.textContent;
+        if (isGroup && parseInt(document.querySelector('#curImgNum').textContent) === 0) {
+            // 添加图片
+            document.querySelector('[onclick="webUrlModal();"]').click();
+            document.querySelector('textarea#webImgUrl').value = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] img').getAttribute('src');
+            document.querySelector('button[onclick="addWebUrl();"]').click();
+        }
 
+        // 商品分类
+        const category = categorySelectElement.textContent;
         document.querySelector('[uid="logisticsPackaging"]').click();
 
         // 报关中文名
