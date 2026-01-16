@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.1.9
+// @version      1.2.0
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -90,6 +90,21 @@
             showToast('请先到商品详情页提取商品信息!');
         }
 
+        const groupSkuSelect = []
+        let groupCount = 0;
+        document.querySelectorAll('[uid="groupSkuSelect"] tr').forEach(trElement => {
+            const code = trElement.querySelector('.f-black').textContent.split('-').pop();
+            const countElement = trElement.querySelector('input#num');
+            const count = countElement.value || 0
+            if (count === 0) {
+                alert(`请输入${code}的数量`);
+                return;
+            }
+            groupCount += Number(count);
+            groupSkuSelect.push(`${code}*${count}`)
+        });
+        console.log(groupSkuSelect);
+
         // 商品信息
         document.querySelector('[uid="goodsInfo"]').click();
         // 随机生成仓位
@@ -107,18 +122,30 @@
         // const dataShopid = hiddenInfo.getAttribute('data-shopid')
         // const dataOrderid = hiddenInfo.getAttribute('data-orderid')
         const skuElement = document.querySelector('input#proSku');
-        skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
+        if (groupSkuSelect.length > 0) {
+            skuElement.value = `ZH-${groupSkuSelect.join(',')}`;
+        } else {
+            skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
+        }
 
         document.querySelector('#catagoryFullName').click();
         document.querySelector('[title="家居日用"]').click();
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
+        if (groupSkuSelect.length > 0) {
+            titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*${groupCount}`;
+        } else {
+            titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
+        }
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
-        identifierElement.value = `${skuElement.value}-${storehouse_position}`;
+        if (groupSkuSelect.length > 0) {
+            identifierElement.value = `${skuElement.value}`;
+        } else {
+            identifierElement.value = `${skuElement.value}-${storehouse_position}`;
+        }
 
         // 来源URL
         if (document.querySelectorAll('input[name="sourceUrl"]').length < 2) {
@@ -157,13 +184,14 @@
         const declareWeightElement = document.querySelector('input#cusWeight');
         declareWeightElement.value = (Math.random() * (35 - 15) + 15).toFixed(2);
 
-        // 质检与供货
-        document.querySelector('[uid="qualityInspectionSupply"]').click();
+        if (groupSkuSelect.length === 0) {
+            // 质检与供货
+            document.querySelector('[uid="qualityInspectionSupply"]').click();
 
-        // 采购参考价
-        const purchasePriceElement = document.querySelector('input#proPrice');
-        purchasePriceElement.value = productInfo.averagePrice;
-
+            // 采购参考价
+            const purchasePriceElement = document.querySelector('input#proPrice');
+            purchasePriceElement.value = productInfo.averagePrice;
+        }
         document.querySelector('[uid="goodsInfo"]').click();
     }
 
