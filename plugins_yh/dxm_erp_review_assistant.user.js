@@ -84,8 +84,6 @@
     function enterStockInfoToDxm() {
         const productInfo = GM_getValue('dxmProductInfo');
         if (productInfo) {
-            // const productName = Object.entries(productInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n')
-            // showToast(`自动输入商品信息:\n\n${productName}`);
             console.log(productInfo);
         } else {
             showToast('请先到商品详情页提取商品信息!', undefined,undefined,'warning');
