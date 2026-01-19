@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.5
+// @version      1.2.6
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -36,7 +36,11 @@
     const originalXhrSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function(data) {
         if (this._url.includes('api/order/remark/config/getList.json') && this._method === 'POST' && data === 'type=sys_service') {
-            setTimeout(() => {autoFillSku()}, 20);
+            setTimeout(() => { autoFillSku()}, 20);
+        }
+        if (this._url === '/api/dxmCommodityProduct/getProductsOrderPageList.json') {
+            const paramDict = Object.fromEntries(new URLSearchParams(data));
+            if (!paramDict.searchSelectValue) {setTimeout(() => {orderMate(paramDict.vid.trim())}, 100);}
         }
         return originalXhrSend.apply(this, arguments);
     };
@@ -49,6 +53,7 @@
         const regularAmazon = document.URL.includes('https://www.amazon.')
         const regular1688 = document.URL.includes('https://detail.1688.com/offer/')
         const regulaDxmCreateProduct = document.URL.includes('https://www.dianxiaomi.com/dxmCommodityProduct/')
+        const regulaDxmMate = document.URL.includes('https://www.dianxiaomi.com/web/order/')
 
         if (e.altKey && [...shortcut_keys_q, ...shortcut_keys_e, ...shortcut_keys_c].includes(e.key)) {
             e.preventDefault();
@@ -69,6 +74,14 @@
             createDxmProduct();
         }
     });
+
+    function orderMate(vid){
+        copyToClipboard(vid)
+        // const inputElement = Array.from(document.querySelectorAll('#searchWareHoseProductsValue')).pop()
+        // inputElement.value = vid;
+        // inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
+        // inputElement.parentElement.querySelector('button[type="submit"]').click();
+    }
 
     const dxmProductInfoMapping = {
         url: '商品链接',
@@ -101,7 +114,8 @@
         for (let i = 0; i < groupElements.length; i++) {
             const code = groupElements[i].querySelector('.f-black').textContent.split('-').pop();
             const countElement = groupElements[i].querySelector('input#num');
-            const title = groupElements[i].querySelector('.gray-c').textContent.split(' >> ').pop().split('*')[0];
+            // const title = groupElements[i].querySelector('.gray-c').textContent.split(' >> ').pop().split('*')[0];
+            const title = groupElements[i].querySelector('.gray-c').textContent.trim();
             const count = countElement.value;
             if (!count) {
                 showToast(`请先输入 ${code} 商品的数量!`, undefined,undefined,'error');
@@ -146,7 +160,7 @@
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
         if (isGroup) {
-            titleZHElement.value = `组合共${groupCount}件 >> ${groupSkuSelectTitle.join(',')}`;
+            titleZHElement.value = `组合共${groupCount}件 || ${groupSkuSelectTitle.join(',')}`;
         } else {
             titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
         }
