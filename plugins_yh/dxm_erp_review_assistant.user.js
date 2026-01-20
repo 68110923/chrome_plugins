@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.7
+// @version      1.2.8
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -10,6 +10,7 @@
 // @match        https://www.tiktok.com/shop/*
 // @match        https://detail.1688.com/offer/*
 // @match        https://www.dianxiaomi.com/dxmCommodityProduct/*
+// @match        https://www.dianxiaomi.com/dxmPurchasingNote/edit.htm*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -35,12 +36,17 @@
 
     const originalXhrSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function(data) {
+        console.log(this._url)
+
         if (this._url.includes('api/order/remark/config/getList.json') && this._method === 'POST' && data === 'type=sys_service') {
             setTimeout(() => { autoFillSku()}, 20);
         }
         if (this._url === '/api/dxmCommodityProduct/getProductsOrderPageList.json') {
             const paramDict = Object.fromEntries(new URLSearchParams(data));
             if (!paramDict.searchSelectValue) {setTimeout(() => {orderMate(paramDict.vid.trim())}, 100);}
+        }
+        if (this._url.includes('/purchasingProposal/getTreeForCreateNoteAddPro.json')) {
+            setTimeout(() => {stockMate()}, 100);
         }
         return originalXhrSend.apply(this, arguments);
     };
@@ -73,6 +79,22 @@
             createDxmProduct();
         }
     });
+
+    function stockMate(){
+        const href = document.querySelector('#pairProductModal.open [uid="name"] a').getAttribute('href').trim();
+        document.querySelector('#addFromProModalSkuId').click();
+        document.querySelector('#search1688Mode').click();
+        document.querySelector('#search1688Mode > [value="0"]').click();
+        const inputElement = document.querySelector('#addFromProValue');
+        inputElement.value = href.match(/\/(\d+)\.html/)[1]
+        inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
+        document.querySelector('#btnSelectSearch').click();
+        const options1Element = document.querySelector('#pairProductModal.open #goodsContent tbody > tr.content > td > a');
+        if (options1Element) {
+            options1Element.click();
+            document.querySelector('#confirmChangeRelationModal [name="changeRelation"][value="1"]').click();
+        }
+    }
 
     function orderMate(vid){
         copyToClipboard(vid)
