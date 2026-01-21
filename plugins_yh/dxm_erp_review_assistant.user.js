@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.0
+// @version      1.3.1
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -11,6 +11,7 @@
 // @match        https://detail.1688.com/offer/*
 // @match        https://www.dianxiaomi.com/dxmCommodityProduct/*
 // @match        https://www.dianxiaomi.com/dxmPurchasingNote/edit.htm*
+// @match        https://www.dianxiaomi.com/dxmPurchasePlan/purchasePlan.htm*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -27,30 +28,45 @@
     'use strict';
     window.pinyinPro = pinyinPro;
 
+    // xhr POST触发
     const originalXhrOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...args) {
         this._method = method;
         this._url = url;
         return originalXhrOpen.apply(this, [method, url, ...args]);
     };
-
     const originalXhrSend = XMLHttpRequest.prototype.send;
     XMLHttpRequest.prototype.send = function(data) {
-        console.log(this._url)
-
         if (this._url.includes('api/order/remark/config/getList.json') && this._method === 'POST' && data === 'type=sys_service') {
             setTimeout(() => { autoFillSku()}, 20);
         }
         if (this._url === '/api/dxmCommodityProduct/getProductsOrderPageList.json') {
             const paramDict = Object.fromEntries(new URLSearchParams(data));
-            if (!paramDict.searchSelectValue) {setTimeout(() => {orderMate(paramDict.vid.trim())}, 100);}
+            if (!paramDict.searchSelectValue) {setTimeout(() => {copyToClipboard(paramDict.vid.trim())}, 100);}
         }
         if (this._url.includes('/purchasingProposal/getTreeForCreateNoteAddPro.json')) {
             setTimeout(() => {stockMate()}, 100);
         }
+        if (this._url.includes('dxmSupplier/getSupplierPage.htm')) {
+            setTimeout(() => {procurementPlanMate()}, 100);
+        }
+
+
+        // 监听response数据
+        const originalOnReadyStateChange = this.onreadystatechange;
+        this.onreadystatechange = function(...args) {
+            if (this._url.includes('h5/mtop.1688.moga.pc.shopcard/1.0/')) {
+                GM_setValue('dxmCurrent1688ShopName', JSON.parse(this.responseText).data.model.shopName)
+            }
+            if (typeof originalOnReadyStateChange === 'function') {
+                originalOnReadyStateChange.apply(this, args);
+            }
+        };
         return originalXhrSend.apply(this, arguments);
     };
 
+
+    // 按键触发
     document.addEventListener('keydown', (e) => {
         const shortcut_keys_q = ['q', 'Q'];
         const shortcut_keys_e = ['e', 'E'];
@@ -80,6 +96,19 @@
         }
     });
 
+    function procurementPlanMate(){
+        const dxmCurrent1688ShopName = GM_getValue('dxmCurrent1688ShopName')
+        if (!dxmCurrent1688ShopName){return}
+        const inputElement = document.querySelector('input#searchValueForChooseSupplier');
+        setTimeout(() => {
+            inputElement.value = dxmCurrent1688ShopName;
+            inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
+            document.querySelector('button#btnSearch').click();
+            }, 100
+        );
+        GM_deleteValue('dxmCurrent1688ShopName')
+    }
+
     function stockMate(){
         const href = document.querySelector('#pairProductModal.open [uid="name"] a').getAttribute('href').trim();
         document.querySelector('#addFromProModalSkuId').click();
@@ -95,15 +124,7 @@
                 options1Element.click();
                 document.querySelector('#confirmChangeRelationModal [name="changeRelation"][value="1"]').click();
             }
-        }, 300);
-    }
-
-    function orderMate(vid){
-        copyToClipboard(vid)
-        // const inputElement = Array.from(document.querySelectorAll('#searchWareHoseProductsValue')).pop()
-        // inputElement.value = vid;
-        // inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
-        // inputElement.parentElement.querySelector('button[type="submit"]').click();
+        }, 100);
     }
 
     const dxmProductInfoMapping = {
