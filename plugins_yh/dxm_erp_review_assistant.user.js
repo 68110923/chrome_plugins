@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.2
+// @version      1.3.3
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -50,14 +50,17 @@
         if (this._url.includes('dxmSupplier/getSupplierPage.htm')) {
             setTimeout(() => {procurementPlanMate()}, 100);
         }
-
+        if (this._url.includes('alibabaProduct/getAlibabaSourceUrl.json')) {
+            setTimeout(() => {procurementPlan1688SkuMate()}, 100);
+        }
 
         // 监听response数据
         const originalOnReadyStateChange = this.onreadystatechange;
         this.onreadystatechange = function(...args) {
-            if (this._url.includes('h5/mtop.1688.moga.pc.shopcard/1.0/') && document.URL.endsWith('?kj_agent_plugin=dxmerp')) {
+            if (this._url.includes('h5/mtop.1688.moga.pc.shopcard/1.0/') && document.URL.endsWith('kj_agent_plugin=dxmerp')) {
                 GM_setValue('dxmCurrent1688ShopName', JSON.parse(this.responseText).data.model.shopName)
             }
+
             if (typeof originalOnReadyStateChange === 'function') {
                 originalOnReadyStateChange.apply(this, args);
             }
@@ -96,6 +99,13 @@
         }
     });
 
+    function procurementPlan1688SkuMate(){
+        const skuStrOri = document.querySelector('#goodsDetailInfo .commodity .no-new-line2:nth-child(2)').textContent.trim()
+        const skuStr = skuStrOri.split(' >> ').pop().split('*')[0]
+        document.querySelector(`.boxContentMater > [data-value="${skuStr}"]`).click()
+
+    }
+
     function procurementPlanMate(){
         const dxmCurrent1688ShopName = GM_getValue('dxmCurrent1688ShopName')
         if (!dxmCurrent1688ShopName){return}
@@ -112,7 +122,8 @@
                 document.querySelector('[class="in-table"] > tbody > tr.content:first-child > td:nth-child(2) > a').click();
                 showToast(`已更换`, undefined, undefined, 'success')
             } else {
-                showToast(`未识别到符合要求的供货商`, undefined, undefined, 'warning')
+                document.querySelector('.open .custom-modal-head a[data-close="modal"]').click();
+                showToast(`************ 未识别到符合要求的供货商 ************`, undefined, undefined, 'warning')
             }
         }, 1000);
         GM_deleteValue('dxmCurrent1688ShopName')
