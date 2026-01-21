@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.2.9
+// @version      1.3.0
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -160,9 +160,10 @@
         } else {
             skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
         }
-        if (!isGroup) {
-            document.querySelectorAll('.remove_tag').forEach((element) => element.click());
-        }
+        // if (!isGroup) {
+        //     // 删除sku标签,会导致无法识别供货商
+        //     document.querySelectorAll('.remove_tag').forEach((element) => element.click());
+        // }
 
         // 商品分类
         const categorySelectElement = document.querySelector('#catagoryFullName');
