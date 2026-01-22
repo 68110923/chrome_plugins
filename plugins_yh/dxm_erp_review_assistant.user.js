@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.4
+// @version      1.3.5
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -93,7 +93,8 @@
         } else if (e.altKey && shortcut_keys_e.includes(e.key) && regular1688) {
             extract1688CreateStockInfo();
         } else if (e.altKey && shortcut_keys_e.includes(e.key) && regulaDxmCreateProduct){
-            enterStockInfoToDxm()
+            const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
+            if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
         } else if (e.altKey && shortcut_keys_c.includes(e.key) && regular1688) {
             createDxmProduct();
         }
@@ -158,74 +159,121 @@
         title: '商品标题',
     }
 
-    function enterStockInfoToDxm() {
-        const productInfo = GM_getValue('dxmProductInfo');
-        if (productInfo) {
-            console.log(productInfo);
-        } else {
-            showToast('请先到商品详情页提取商品信息!', undefined,undefined,'warning');
-        }
-
-        const groupSkuSelect = []
-        const groupSkuSelectTitle = []
-        let groupCount = 0;
-        const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
+    function enterStockInfoToDxmCombination() {
+        const groupSku = []
         const groupElements = document.querySelectorAll('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] tr')
-        if (isGroup && groupElements.length === 0) {
+        if (groupElements.length === 0) {
             showToast('请先添加组合的商品!', undefined,undefined,'error');
             return;
         }
         for (let i = 0; i < groupElements.length; i++) {
-            const code = groupElements[i].querySelector('.f-black').textContent.split('-').pop();
-            const countElement = groupElements[i].querySelector('input#num');
-            // const title = groupElements[i].querySelector('.gray-c').textContent.split(' >> ').pop().split('*')[0];
-            const title = groupElements[i].querySelector('.gray-c').textContent.trim();
-            const count = countElement.value;
+            const skuText = groupElements[i].querySelector('.f-black').textContent.replace('SKU：', '')
+            const count = groupElements[i].querySelector('input#num').value
             if (!count) {
-                showToast(`请先输入 ${code} 商品的数量!`, undefined,undefined,'error');
+                showToast(`${skuText} 请输入数量!`, undefined,undefined,'error');
                 return;
             }
-            groupCount += Number(count);
-            groupSkuSelect.push(`${code}*${count}`)
-            groupSkuSelectTitle.push(`${title}*${count}`)
+            const skuDict = {
+                sku: skuText,
+                code_ori: skuText.split('-')[0],
+                code_1688: skuText.split('-')[1],
+                code_a: skuText.split('-')[2],
+                title: groupElements[i].querySelector('.gray-c').textContent.trim(),
+                count: parseInt(groupElements[i].querySelector('input#num').value),
+                img: groupElements[i].querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] img').getAttribute('src'),
+            }
+            groupSku.push(skuDict)
         }
 
         // 商品信息
         document.querySelector('[uid="goodsInfo"]').click();
         // 商品SKU
+        const skuElement = document.querySelector('input#proSku');
+        skuElement.value = 'ZH-' + groupSku.map(sku => `${sku.code_a}*${sku.count}`).join(',');
+        // 商品分类：
+        const categorySelectElement = document.querySelector('#catagoryFullName');
+        categorySelectElement.click();
+        document.querySelector('[title="家居日用"]').click();
+        // 中文名称
+        const titleZHElement = document.querySelector('input#proName');
+        titleZHElement.value = '组合共' + groupSku.reduce((total, item) => total + item.count, 0) + '件';
+        titleZHElement.value += ' || ' + groupSku.map(sku => `${sku.title}*${sku.count}`).join(',');
+        // 识别码
+        const identifierElement = document.querySelector('input#proSbm');
+        identifierElement.value = skuElement.value;
+
+        // 来源URL
+        const existSourceCount = document.querySelectorAll('input[name="sourceUrl"]').length
+        const needsAddSourceCount = groupSku.length - existSourceCount;
+        const alsoAddSourceCount = 5 - existSourceCount;
+        const addSourceCount = needsAddSourceCount > alsoAddSourceCount ? alsoAddSourceCount : needsAddSourceCount;
+        console.log(`需要添加${needsAddSourceCount}个来源URL, 还能添加${alsoAddSourceCount}个, 本次会添加${addSourceCount}个`)
+        if (addSourceCount >= 0) {
+            for (let i = 0; i < addSourceCount; i++) {document.querySelector('.addSourceUrl').click();}
+        } else {
+            for (let i = 0; i < -addSourceCount; i++) {document.querySelector('.removeSourceUrl').click();}
+        }
+        document.querySelectorAll('input[name="sourceUrl"]').forEach((inputElement, index) => {
+            inputElement.value = `https://detail.1688.com/offer/${groupSku[index].code_1688}.html`;
+        })
+
+        // 添加图片, 默认组合的第一个图片
+        // if (parseInt(document.querySelector('#curImgNum').textContent) === 0) {
+        //     document.querySelector('[onclick="webUrlModal();"]').click();
+        //     document.querySelector('textarea#webImgUrl').value = groupSku.map(sku => sku.img).join('\n');
+        //     document.querySelector('button[onclick="addWebUrl();"]').click();
+        // }
+
+        // 点击:物流与包装
+        const category = categorySelectElement.textContent;
+        document.querySelector('[uid="logisticsPackaging"]').click();
+
+        // 报关中文名
+        const customNameZhElement = document.querySelector('input#nameCn');
+        customNameZhElement.value = category;
+
+        // 报关英文名
+        const customNameEnElement = document.querySelector('input#nameEn');
+        customNameEnElement.value = 'necessary'
+
+        // 申报金额 0.1-1.5
+        const declarePriceElement = document.querySelector('input#cusPrice');
+        declarePriceElement.value = (Math.random() * (1.5 - 0.1) + 0.1).toFixed(2);
+
+        // 申报重量 15-35 克
+        const declareWeightElement = document.querySelector('input#cusWeight');
+        declareWeightElement.value = (Math.random() * (35 - 15) + 15).toFixed(2);
+
+        // 返回首页
+        document.querySelector('[uid="goodsInfo"]').click();
+        showToast(`组合商品信息已自动录入`, undefined,undefined,'success');
+    }
+
+    function enterStockInfoToDxm() {
+        const productInfo = GM_getValue('dxmProductInfo');
+        if (!productInfo) {
+            showToast('请先提取1688详情页信息!', undefined,undefined,'warning');
+        }
+        // 点击商品信息
+        document.querySelector('[uid="goodsInfo"]').click();
+        // 商品SKU
         const hiddenInfo = document.querySelector('input#hiddenInfo');
         const dataVid = hiddenInfo.getAttribute('data-vid')
         const skuElement = document.querySelector('input#proSku');
-        if (isGroup) {
-            skuElement.value = `ZH-${groupSkuSelect.join(',')}`;
-        } else {
-            skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
-        }
-        // if (!isGroup) {
-        //     // 删除sku标签,会导致无法识别供货商
-        //     document.querySelectorAll('.remove_tag').forEach((element) => element.click());
-        // }
+        skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
 
-        // 商品分类
+        // 商品分类:
         const categorySelectElement = document.querySelector('#catagoryFullName');
         categorySelectElement.click();
         document.querySelector('[title="家居日用"]').click();
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        if (isGroup) {
-            titleZHElement.value = `组合共${groupCount}件 || ${groupSkuSelectTitle.join(',')}`;
-        } else {
-            titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}*1`;
-        }
+        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}`;
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
-        if (isGroup) {
-            identifierElement.value = skuElement.value;
-        } else {
-            identifierElement.value = skuElement.value;
-        }
+        identifierElement.value = skuElement.value;
 
         // 来源URL
         if (document.querySelectorAll('input[name="sourceUrl"]').length < 2) {
@@ -237,20 +285,12 @@
             sourceUrlElements[index].value = sourceUrl;
         });
 
-        if (isGroup && parseInt(document.querySelector('#curImgNum').textContent) === 0) {
-            // 添加图片
-            document.querySelector('[onclick="webUrlModal();"]').click();
-            document.querySelector('textarea#webImgUrl').value = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] img').getAttribute('src');
-            document.querySelector('button[onclick="addWebUrl();"]').click();
-        }
-
-        // 商品分类
-        const category = categorySelectElement.textContent;
+        // 点击物流与包装
         document.querySelector('[uid="logisticsPackaging"]').click();
 
         // 报关中文名
         const customNameZhElement = document.querySelector('input#nameCn');
-        customNameZhElement.value = category;
+        customNameZhElement.value = categorySelectElement.textContent;
 
         // 报关英文名
         const customNameEnElement = document.querySelector('input#nameEn');
@@ -269,16 +309,17 @@
         const declareWeightElement = document.querySelector('input#cusWeight');
         declareWeightElement.value = (Math.random() * (35 - 15) + 15).toFixed(2);
 
-        if (!isGroup) {
-            // 质检与供货
-            document.querySelector('[uid="qualityInspectionSupply"]').click();
+        // 点击质检与供货
+        document.querySelector('[uid="qualityInspectionSupply"]').click();
 
-            // 采购参考价
-            const purchasePriceElement = document.querySelector('input#proPrice');
-            purchasePriceElement.value = productInfo.averagePrice;
-        }
+        // 采购参考价
+        const purchasePriceElement = document.querySelector('input#proPrice');
+        purchasePriceElement.value = productInfo.averagePrice;
+
+        // 返回首页
         document.querySelector('[uid="goodsInfo"]').click();
         showToast(`商品信息已自动录入`, undefined,undefined,'success');
+        GM_deleteValue('dxmProductInfo');
     }
 
     function createDxmProduct(){
@@ -320,7 +361,9 @@
         }).filter(Boolean)
         console.log(priceElements)
         const price = priceElements.length > 0 ? priceElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
-
+        return parseFloat(price).toFixed(2);
+    }
+    function get1688TotalFreight(){
         const freightElements = Object.values({
             '常规': document.querySelector('#submitOrder .total-freight-fee .currency'),
             'https://detail.1688.com/offer/927463287246.html': document.querySelector('.delivery-box > span > span'),
@@ -328,8 +371,7 @@
             'https://detail.1688.com/offer/735420835508.html': document.querySelector('.delivery-info .delivery-value'),
         }).filter(Boolean)
         const freight = freightElements.length > 0 ? freightElements[0].textContent.trim().match(/[0-9.]+/)[0].trim() : 0;
-
-        return (parseFloat(price) + parseFloat(freight)).toFixed(2);
+        return parseFloat(freight).toFixed(2);
     }
 
     function get1688ProductSku(){
@@ -410,7 +452,7 @@
             '采购平台': '1688',
             '商品链接': urlMatch ? urlMatch[0] : null,
             '商品标识': get1688ProductSku(),
-            '商品价格': get1688TotalPrice(),
+            '商品价格': get1688TotalPrice() + get1688TotalFreight(),
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `  ${key}: ${value}`);
         copyToClipboard(dataList.join('\n'));
