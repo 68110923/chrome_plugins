@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.7
+// @version      1.3.8
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -150,8 +150,10 @@
             GM_setValue('1688NotifiedSellerList', notifiedSellerList);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        GM_deleteValue('1688OrderList');
-        GM_deleteValue('1688NotifiedSellerList');
+        if (sellerKeys.length === notifiedSellerList.length){
+            GM_deleteValue('1688OrderList');
+            GM_deleteValue('1688NotifiedSellerList');
+        }
         showToast('所有卖家已通知', undefined, undefined, 'success')
     }
 
