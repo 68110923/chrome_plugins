@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.8
+// @version      1.3.9
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -77,37 +77,42 @@
 
     // 按键触发
     document.addEventListener('keydown', async (e) => {
-        const shortcut_keys_q = ['q', 'Q'];
-        const shortcut_keys_e = ['e', 'E'];
-        const shortcut_keys_c = ['c', 'C'];
+        const alt_keys = {
+            q: ['q', 'Q'],
+            e: ['e', 'E'],
+            c: ['c', 'C'],
+        };
+        if (!e.altKey || !Object.values(alt_keys).flat().includes(e.key)) {return;}
+        e.preventDefault();
+        e.stopPropagation();
+
         const regularTiktok = document.URL.includes('https://www.tiktok.com/')
         const regularAmazon = document.URL.includes('https://www.amazon.')
         const regular1688 = document.URL.includes('https://detail.1688.com/offer/')
         const regulaDxmCreateProduct = document.URL.includes('https://www.dianxiaomi.com/dxmCommodityProduct/')
         const orderList1688 = document.URL.includes('https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html')
         const wangwangNews1688 = document.URL.includes('https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html')
+        const dxmInStock = document.URL.includes('https://www.dianxiaomi.com/web/order/allocated/has?go=m10301')
+        const dxmShipmentSuccessful = document.URL.includes('https://www.dianxiaomi.com/web/order/shipped/success?go=m10403')
 
-        if (e.altKey && [...shortcut_keys_q, ...shortcut_keys_e, ...shortcut_keys_c].includes(e.key)) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
-
-        if (e.altKey && shortcut_keys_q.includes(e.key) && regularAmazon) {
+        if (alt_keys.q.includes(e.key) && regularAmazon) {
             extractAmazonNotes();
-        } else if (e.altKey && shortcut_keys_q.includes(e.key) && regularTiktok) {
+        } else if (alt_keys.q.includes(e.key) && regularTiktok) {
             extractTiktokNotes();
-        } else if (e.altKey && shortcut_keys_q.includes(e.key) && regular1688) {
+        } else if (alt_keys.q.includes(e.key) && regular1688) {
             extract1688Notes();
-        } else if (e.altKey && shortcut_keys_q.includes(e.key) && orderList1688) {
+        } else if (alt_keys.q.includes(e.key) && orderList1688) {
             await extractOrdersAwaitingPayment();
-        } else if (e.altKey && shortcut_keys_q.includes(e.key) && wangwangNews1688) {
+        } else if (alt_keys.q.includes(e.key) && wangwangNews1688) {
             await sendMessageChangePrice();
-        } else if (e.altKey && shortcut_keys_e.includes(e.key) && regular1688) {
+        }else if (alt_keys.q.includes(e.key) && (dxmInStock || dxmShipmentSuccessful)) {
+            createDxmProduct();
+        } else if (alt_keys.e.includes(e.key) && regular1688) {
             extract1688CreateStockInfo();
-        } else if (e.altKey && shortcut_keys_e.includes(e.key) && regulaDxmCreateProduct){
+        } else if (alt_keys.e.includes(e.key) && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
             if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
-        } else if (e.altKey && shortcut_keys_c.includes(e.key) && regular1688) {
+        } else if (alt_keys.c.includes(e.key) && regular1688) {
             createDxmProduct();
         }
     });
@@ -120,6 +125,7 @@
 
         const documentIframe = document.querySelector('iframe[src*="app/ocms-fusion-components-1688/def_cbu_web_im_core/index.html"]').contentDocument
         for (const [index, key] of sellerKeys.entries()) {
+            console.log(index)
             if (notifiedSellerList.includes(key) || key === 'batchDate') {continue;}
             const valueList = allOrderList[key];
             const totalFreight = valueList.reduce((acc, cur) => acc + cur.freight, 0).toFixed(2)
@@ -544,7 +550,7 @@
             '采购平台': '1688',
             '商品链接': urlMatch ? urlMatch[0] : null,
             '商品标识': get1688ProductSku(),
-            '商品价格': get1688TotalPrice() + get1688TotalFreight(),
+            '商品价格': parseFloat(get1688TotalPrice()) + parseFloat(get1688TotalFreight())
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `  ${key}: ${value}`);
         copyToClipboard(dataList.join('\n'));
