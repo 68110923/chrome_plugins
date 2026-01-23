@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.5
+// @version      1.3.6
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -12,6 +12,8 @@
 // @match        https://www.dianxiaomi.com/dxmCommodityProduct/*
 // @match        https://www.dianxiaomi.com/dxmPurchasingNote/edit.htm*
 // @match        https://www.dianxiaomi.com/dxmPurchasePlan/purchasePlan.htm*
+// @match        https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html*
+// @match        https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html*
 // @grant        GM_addStyle
 // @grant        unsafeWindow
 // @grant        GM_log
@@ -19,6 +21,10 @@
 // @grant        GM_setValue
 // @grant        GM_getValue
 // @grant        GM_deleteValue
+// @grant        GM_openInTab
+// @grant        GM_xmlhttpRequest
+// @grant        GM_setClipboard
+// @grant        GM_getClipboard
 // @require      https://cdn.jsdelivr.net/npm/pinyin-pro@3.27.0/dist/index.min.js
 // @downloadURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
 // @updateURL https://raw.githubusercontent.com/68110923/chrome_plugins/main/plugins_yh/dxm_erp_review_assistant.user.js
@@ -70,7 +76,7 @@
 
 
     // 按键触发
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', async (e) => {
         const shortcut_keys_q = ['q', 'Q'];
         const shortcut_keys_e = ['e', 'E'];
         const shortcut_keys_c = ['c', 'C'];
@@ -78,6 +84,8 @@
         const regularAmazon = document.URL.includes('https://www.amazon.')
         const regular1688 = document.URL.includes('https://detail.1688.com/offer/')
         const regulaDxmCreateProduct = document.URL.includes('https://www.dianxiaomi.com/dxmCommodityProduct/')
+        const orderList1688 = document.URL.includes('https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html')
+        const wangwangNews1688 = document.URL.includes('https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html')
 
         if (e.altKey && [...shortcut_keys_q, ...shortcut_keys_e, ...shortcut_keys_c].includes(e.key)) {
             e.preventDefault();
@@ -90,6 +98,10 @@
             extractTiktokNotes();
         } else if (e.altKey && shortcut_keys_q.includes(e.key) && regular1688) {
             extract1688Notes();
+        } else if (e.altKey && shortcut_keys_q.includes(e.key) && orderList1688) {
+            await extractOrdersAwaitingPayment();
+        } else if (e.altKey && shortcut_keys_q.includes(e.key) && wangwangNews1688) {
+            await sendMessageChangePrice();
         } else if (e.altKey && shortcut_keys_e.includes(e.key) && regular1688) {
             extract1688CreateStockInfo();
         } else if (e.altKey && shortcut_keys_e.includes(e.key) && regulaDxmCreateProduct){
@@ -100,11 +112,89 @@
         }
     });
 
+    async function sendMessageChangePrice(){
+        const allOrderList = GM_getValue('1688OrderList') || {};
+        const sellerKeys = Object.keys(allOrderList);
+        const notifiedSellerList = GM_getValue('1688NotifiedSellerList') || [];
+        if (!sellerKeys.length || allOrderList.batchDate !== new Date().toLocaleDateString()) {showToast('请先在1688订单列表页点击任意订单，获取订单信息', undefined, undefined, 'error'); return}
+
+        const documentIframe = document.querySelector('iframe[src*="app/ocms-fusion-components-1688/def_cbu_web_im_core/index.html"]').contentDocument
+        for (const [index, key] of sellerKeys.entries()) {
+            if (notifiedSellerList.includes(key) || key === 'batchDate') {continue;}
+            const valueList = allOrderList[key];
+            const totalFreight = valueList.reduce((acc, cur) => acc + cur.freight, 0).toFixed(2)
+            if (totalFreight < 6) {continue;}
+
+            const inputElement = documentIframe.querySelector('[placeholder="搜索联系人"]')
+            inputElement.focus();
+            inputElement.value = key
+            inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
+            const oldStr1 = documentIframe.querySelector('.conversation > .name')?.textContent.trim() || crypto.randomUUID()
+            documentIframe.querySelector('.anticon-search').click()
+            await waitForElementTextChange('.conversation > .name', documentIframe, 10*1000, oldStr1)
+
+            const wangwangNameElement = documentIframe.querySelector('.conversation > .name')
+            if (!wangwangNameElement || wangwangNameElement.textContent.trim() !== key) {showToast(`未找到旺旺:${key}`, undefined, undefined, 'error'); continue;}
+            const oldStr2 = documentIframe.querySelector('.go-shop-container')?.textContent.trim() || crypto.randomUUID()
+            wangwangNameElement.click()
+            await waitForElementTextChange('.go-shop-container', documentIframe, 10*1000, oldStr2)
+
+            const message = `${valueList.map((item) => item.orderId).join('\n')}\n\n你好这${valueList.length > 1 ? valueList.length : ''}个订单号麻烦修改下运费，今天能及时发出来吗？`
+            const editElement = documentIframe.querySelector('.text-area > .editBox > pre')
+            editElement.textContent = message;
+            editElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
+            documentIframe.querySelector('.send-btn').click()
+
+            showToast(`${index + 1} / ${sellerKeys.length} 旺旺:${key} 总运费:${totalFreight}`);
+            notifiedSellerList.push(key);
+            GM_setValue('1688NotifiedSellerList', notifiedSellerList);
+            await new Promise(resolve => setTimeout(resolve, 500));
+        }
+        GM_deleteValue('1688OrderList');
+        GM_deleteValue('1688NotifiedSellerList');
+        showToast('所有卖家已通知', undefined, undefined, 'success')
+    }
+
+    async function extractOrdersAwaitingPayment(){
+        const dataSet = {}
+        let totalOrderCount = 0
+        let isWhile = true
+        while (isWhile) {
+            const currentPageOrderList = findElementInNestedShadowDOM('.order-item-content')
+            totalOrderCount += currentPageOrderList.length;
+            currentPageOrderList.forEach((orderElement) => {
+                const orderItem = {}
+                orderItem.orderId = orderElement.querySelector('.order-item-entry[data-entry-id]').getAttribute('data-entry-id')
+                const freight = findElementInNestedShadowDOM('.carriage', orderElement)[0].textContent.match(/[\d.]+/g)
+                orderItem.freight = parseFloat(freight?.[0] || 0)
+                orderItem.shopName = findElementInNestedShadowDOM('.company-name', orderElement)[0].textContent.trim()
+                orderItem.wangwangName = findElementInNestedShadowDOM('.seller-id-text', orderElement)[0].textContent.trim()
+                if (dataSet[orderItem.wangwangName]){
+                    dataSet[orderItem.wangwangName].push(orderItem)
+                } else {
+                    dataSet[orderItem.wangwangName] = [orderItem]
+                }
+            })
+            const nextPageElement = findElementInNestedShadowDOM('#right:not([disabled="true"])', document)[0]
+            if (nextPageElement) {
+                nextPageElement.click();
+                await waitForElementTextChange('#page')
+                isWhile = true
+            } else {
+                isWhile = false
+            }
+        }
+        console.log(dataSet)
+        showToast(`从${totalOrderCount}条订单中，识别到${Object.keys(dataSet).length}个不同的卖家`, undefined, undefined, 'success')
+        dataSet['batchDate'] = new Date().toLocaleDateString()
+        GM_setValue('1688OrderList', dataSet)
+        GM_setValue('1688NotifiedSellerList', [])
+    }
+
     function procurementPlan1688SkuMate(){
         const skuStrOri = document.querySelector('#goodsDetailInfo .commodity .no-new-line2:nth-child(2)').textContent.trim()
         const skuStr = skuStrOri.split(' >> ').pop().split('*')[0]
         document.querySelector(`.boxContentMater > [data-value="${skuStr}"]`).click()
-
     }
 
     function procurementPlanMate(){
@@ -633,4 +723,29 @@
         }, toastDuration);
     }
 
+    function findElementInNestedShadowDOM(targetSelector, root = document) {
+        // 递归-shadow-dom查找目标元素
+        let results = Array.from(root.querySelectorAll(targetSelector));
+        const allElements = Array.from(root.querySelectorAll('*'));
+        allElements.forEach(el => {
+            if (el.shadowRoot) {
+                const nestedResults = findElementInNestedShadowDOM(targetSelector, el.shadowRoot);
+                results = results.concat(nestedResults);
+            }
+        });
+        return results;
+    }
+
+    async function waitForElementTextChange(elementSelector, root=document, timeout = 1000*15, oldStr=null) {
+        // 等待元素文本变化
+        if (!oldStr) oldStr = findElementInNestedShadowDOM(elementSelector, root)[0].textContent.trim()
+        return new Promise(resolve => {
+            const start = Date.now();
+            const timer = setInterval(() => {
+                if (Date.now() - start >= timeout) return clearInterval(timer) || resolve();
+                const newStr = findElementInNestedShadowDOM(elementSelector, root)[0]?.textContent.trim() || '';
+                if (newStr && newStr !== oldStr) clearInterval(timer) || resolve();
+            }, 1000);
+        });
+    }
 })();
