@@ -145,16 +145,16 @@
             editElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
             documentIframe.querySelector('.send-btn').click()
 
-            showToast(`${index + 1} / ${sellerKeys.length} 旺旺:${key} 总运费:${totalFreight}`);
             notifiedSellerList.push(key);
             GM_setValue('1688NotifiedSellerList', notifiedSellerList);
+            showToast(`旺旺:${key} 总运费:${totalFreight}  已通知 ${notifiedSellerList.length}/${sellerKeys.length} 个`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        if (sellerKeys.length === notifiedSellerList.length){
+        if (sellerKeys === notifiedSellerList){
             GM_deleteValue('1688OrderList');
             GM_deleteValue('1688NotifiedSellerList');
         }
-        showToast('所有卖家已通知', undefined, undefined, 'success')
+        showToast(`共${sellerKeys.length}个卖家，${notifiedSellerList.length}个已通知`, undefined, undefined, 'success')
     }
 
     async function extractOrdersAwaitingPayment(){
