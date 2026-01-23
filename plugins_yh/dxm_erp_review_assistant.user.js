@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.1
+// @version      1.4.2
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -264,14 +264,14 @@
         const groupSku = []
         const groupElements = document.querySelectorAll('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] tr')
         if (groupElements.length === 0) {
-            showToast('请先添加组合的商品!', undefined,undefined,'error');
+            showToast('请先添加组合的商品!','error');
             return;
         }
         for (let i = 0; i < groupElements.length; i++) {
             const skuText = groupElements[i].querySelector('.f-black').textContent.replace('SKU：', '')
             const count = groupElements[i].querySelector('input#num').value
             if (!count) {
-                showToast(`${skuText} 请输入数量!`, undefined,undefined,'error');
+                showToast(`${skuText} 请输入数量!`,'error');
                 return;
             }
             const skuDict = {
@@ -347,13 +347,13 @@
 
         // 返回首页
         document.querySelector('[uid="goodsInfo"]').click();
-        showToast(`组合商品信息已自动录入`, undefined,undefined,'success');
+        showToast(`组合商品信息已自动录入`,'success');
     }
 
     function enterStockInfoToDxm() {
         const productInfo = GM_getValue('dxmProductInfo');
         if (!productInfo) {
-            showToast('请先提取1688详情页信息!', undefined,undefined,'warning');
+            showToast('请先提取1688详情页信息!','warning');
         }
         // 点击商品信息
         document.querySelector('[uid="goodsInfo"]').click();
@@ -419,7 +419,7 @@
 
         // 返回首页
         document.querySelector('[uid="goodsInfo"]').click();
-        showToast(`商品信息已自动录入`, undefined,undefined,'success');
+        showToast(`商品信息已自动录入`,'success');
         GM_deleteValue('dxmProductInfo');
     }
 
@@ -428,13 +428,13 @@
         const totalPrice = get1688TotalPrice();
 
         const skuAndCount = get1688ProductSku();
-        if (!skuAndCount || skuAndCount.split(',').length > 1) {showToast('请先选择商品型号和数量, 不能同时选择多个型号', undefined,undefined,'error');return;}
+        if (!skuAndCount || skuAndCount.split(',').length > 1) {showToast('请先选择商品型号和数量, 不能同时选择多个型号', 'error');return;}
         const lastStarIndex = skuAndCount.lastIndexOf('*');
         const [sku, count] = lastStarIndex === -1 ? [skuAndCount, ''] : [skuAndCount.slice(0, lastStarIndex), skuAndCount.slice(lastStarIndex + 1)];
 
         const titleElement = document.querySelector('.title-content h1') || document.querySelector('[class="title-text"]');
         const title = titleElement ? titleElement.textContent.trim() : null;
-        if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件', undefined,undefined,'error');return;}
+        if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件', 'error');return;}
 
         const dxmProductInfo = {
             url: urlMatch[0],
@@ -645,7 +645,7 @@
 
     function copyToClipboard(text) {
         return navigator.clipboard.writeText(text).then(() => {
-            showToast(text, undefined,undefined,'info');
+            showToast(text,'info');
         }).catch(err => {
             alert(`复制失败，请联系Tom反馈!!!\n\n错误信息: ${err}, \n链接: ${document.URL}`);
         });
