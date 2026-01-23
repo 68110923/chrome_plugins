@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.6
+// @version      1.3.7
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -131,13 +131,13 @@
             inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
             const oldStr1 = documentIframe.querySelector('.conversation > .name')?.textContent.trim() || crypto.randomUUID()
             documentIframe.querySelector('.anticon-search').click()
-            await waitForElementTextChange('.conversation > .name', documentIframe, 10*1000, oldStr1)
+            await waitForElementTextChange('.conversation > .name', documentIframe, oldStr1,10*1000, 50)
 
             const wangwangNameElement = documentIframe.querySelector('.conversation > .name')
             if (!wangwangNameElement || wangwangNameElement.textContent.trim() !== key) {showToast(`未找到旺旺:${key}`, undefined, undefined, 'error'); continue;}
             const oldStr2 = documentIframe.querySelector('.go-shop-container')?.textContent.trim() || crypto.randomUUID()
             wangwangNameElement.click()
-            await waitForElementTextChange('.go-shop-container', documentIframe, 10*1000, oldStr2)
+            await waitForElementTextChange('.go-shop-container', documentIframe, oldStr2, 10*1000, 500)
 
             const message = `${valueList.map((item) => item.orderId).join('\n')}\n\n你好这${valueList.length > 1 ? valueList.length : ''}个订单号麻烦修改下运费，今天能及时发出来吗？`
             const editElement = documentIframe.querySelector('.text-area > .editBox > pre')
@@ -736,7 +736,7 @@
         return results;
     }
 
-    async function waitForElementTextChange(elementSelector, root=document, timeout = 1000*15, oldStr=null) {
+    async function waitForElementTextChange(elementSelector, root=document, oldStr=null, timeout = 1000*15, timeoutInterval=1000) {
         // 等待元素文本变化
         if (!oldStr) oldStr = findElementInNestedShadowDOM(elementSelector, root)[0].textContent.trim()
         return new Promise(resolve => {
@@ -745,7 +745,7 @@
                 if (Date.now() - start >= timeout) return clearInterval(timer) || resolve();
                 const newStr = findElementInNestedShadowDOM(elementSelector, root)[0]?.textContent.trim() || '';
                 if (newStr && newStr !== oldStr) clearInterval(timer) || resolve();
-            }, 1000);
+            }, timeoutInterval);
         });
     }
 })();
