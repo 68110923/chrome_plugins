@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.2
+// @version      1.4.3
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -133,10 +133,9 @@
         const documentIframe = document.querySelector('iframe[src*="app/ocms-fusion-components-1688/def_cbu_web_im_core/index.html"]').contentDocument
         for (const [index, key] of sellerKeys.entries()) {
             console.log(index)
-            if (notifiedSellerList.includes(key) || key === 'batchDate') {continue;}
             const valueList = allOrderList[key];
             const totalFreight = valueList.reduce((acc, cur) => acc + cur.freight, 0).toFixed(2)
-            if (totalFreight < 6) {continue;}
+            if (key === 'batchDate' || notifiedSellerList.includes(key) || totalFreight < 6) {continue;}
 
             const inputElement = documentIframe.querySelector('[placeholder="搜索联系人"]')
             inputElement.focus();
@@ -163,7 +162,7 @@
             showToast(`旺旺:${key} 总运费:${totalFreight}  已通知 ${notifiedSellerList.length}/${sellerKeys.length} 个`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        showToast(`共${sellerKeys.length}个卖家，${notifiedSellerList.length}个已通知`, 'success')
+        showToast(`当前识别到 ${sellerKeys.length - 1} 个卖家，今日已通知 ${notifiedSellerList.length} 个卖家改价`, 'success')
     }
 
     async function extractOrdersAwaitingPayment(){
