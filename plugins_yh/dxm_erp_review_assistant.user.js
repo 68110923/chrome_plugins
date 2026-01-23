@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.3.9
+// @version      1.4.0
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -85,6 +85,9 @@
         if (!e.altKey || !Object.values(alt_keys).flat().includes(e.key)) {return;}
         e.preventDefault();
         e.stopPropagation();
+        const key_q = alt_keys.q.includes(e.key)
+        const key_e = alt_keys.e.includes(e.key)
+        const key_c = alt_keys.c.includes(e.key)
 
         const regularTiktok = document.URL.includes('https://www.tiktok.com/')
         const regularAmazon = document.URL.includes('https://www.amazon.')
@@ -95,25 +98,29 @@
         const dxmInStock = document.URL.includes('https://www.dianxiaomi.com/web/order/allocated/has?go=m10301')
         const dxmShipmentSuccessful = document.URL.includes('https://www.dianxiaomi.com/web/order/shipped/success?go=m10403')
 
-        if (alt_keys.q.includes(e.key) && regularAmazon) {
+        if (key_q && regularAmazon) {
             extractAmazonNotes();
-        } else if (alt_keys.q.includes(e.key) && regularTiktok) {
+        } else if (key_q && regularTiktok) {
             extractTiktokNotes();
-        } else if (alt_keys.q.includes(e.key) && regular1688) {
+        } else if (key_q && regular1688) {
             extract1688Notes();
-        } else if (alt_keys.q.includes(e.key) && orderList1688) {
+        } else if (key_q && orderList1688) {
             await extractOrdersAwaitingPayment();
-        } else if (alt_keys.q.includes(e.key) && wangwangNews1688) {
+        } else if (key_q && wangwangNews1688) {
             await sendMessageChangePrice();
-        }else if (alt_keys.q.includes(e.key) && (dxmInStock || dxmShipmentSuccessful)) {
-            createDxmProduct();
-        } else if (alt_keys.e.includes(e.key) && regular1688) {
+        }else if (key_q && (dxmInStock || dxmShipmentSuccessful)) {
+            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+        } else if (key_e && regular1688) {
             extract1688CreateStockInfo();
-        } else if (alt_keys.e.includes(e.key) && regulaDxmCreateProduct){
+        } else if (key_e && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
             if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
-        } else if (alt_keys.c.includes(e.key) && regular1688) {
-            createDxmProduct();
+        } else if (key_c) {
+            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+        } else if (key_q) {
+            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+        } else if (key_e) {
+            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
         }
     });
 
@@ -121,7 +128,7 @@
         const allOrderList = GM_getValue('1688OrderList') || {};
         const sellerKeys = Object.keys(allOrderList);
         const notifiedSellerList = GM_getValue('1688NotifiedSellerList') || [];
-        if (!sellerKeys.length || allOrderList.batchDate !== new Date().toLocaleDateString()) {showToast('请先在1688订单列表页点击任意订单，获取订单信息', undefined, undefined, 'error'); return}
+        if (!sellerKeys.length || allOrderList.batchDate !== new Date().toLocaleDateString()) {GM_deleteValue('1688OrderList');GM_deleteValue('1688NotifiedSellerList');showToast('请先在1688订单列表页点击任意订单，获取订单信息', 'error'); return}
 
         const documentIframe = document.querySelector('iframe[src*="app/ocms-fusion-components-1688/def_cbu_web_im_core/index.html"]').contentDocument
         for (const [index, key] of sellerKeys.entries()) {
@@ -140,7 +147,7 @@
             await waitForElementTextChange('.conversation > .name', documentIframe, oldStr1,10*1000, 50)
 
             const wangwangNameElement = documentIframe.querySelector('.conversation > .name')
-            if (!wangwangNameElement || wangwangNameElement.textContent.trim() !== key) {showToast(`未找到旺旺:${key}`, undefined, undefined, 'error'); continue;}
+            if (!wangwangNameElement || wangwangNameElement.textContent.trim() !== key) {showToast(`未找到旺旺:${key}`, 'error'); continue;}
             const oldStr2 = documentIframe.querySelector('.go-shop-container')?.textContent.trim() || crypto.randomUUID()
             wangwangNameElement.click()
             await waitForElementTextChange('.go-shop-container', documentIframe, oldStr2, 10*1000, 500)
@@ -156,11 +163,7 @@
             showToast(`旺旺:${key} 总运费:${totalFreight}  已通知 ${notifiedSellerList.length}/${sellerKeys.length} 个`);
             await new Promise(resolve => setTimeout(resolve, 500));
         }
-        if (sellerKeys === notifiedSellerList){
-            GM_deleteValue('1688OrderList');
-            GM_deleteValue('1688NotifiedSellerList');
-        }
-        showToast(`共${sellerKeys.length}个卖家，${notifiedSellerList.length}个已通知`, undefined, undefined, 'success')
+        showToast(`共${sellerKeys.length}个卖家，${notifiedSellerList.length}个已通知`, 'success')
     }
 
     async function extractOrdersAwaitingPayment(){
@@ -193,10 +196,10 @@
             }
         }
         console.log(dataSet)
-        showToast(`从${totalOrderCount}条订单中，识别到${Object.keys(dataSet).length}个不同的卖家`, undefined, undefined, 'success')
+        showToast(`从${totalOrderCount}条订单中，识别到${Object.keys(dataSet).length}个不同的卖家`, 'success')
         dataSet['batchDate'] = new Date().toLocaleDateString()
         GM_setValue('1688OrderList', dataSet)
-        GM_setValue('1688NotifiedSellerList', [])
+        if (GM_getValue('1688OrderList', {}).batchDate !== new Date().toLocaleDateString()){GM_setValue('1688NotifiedSellerList', [])}
     }
 
     function procurementPlan1688SkuMate(){
@@ -219,10 +222,10 @@
             const tempElement = document.querySelector('[class="in-table"] > tbody > tr.content:first-child > td:first-child')
             if (tempElement && tempElement.textContent.trim().includes(dxmCurrent1688ShopName)){
                 document.querySelector('[class="in-table"] > tbody > tr.content:first-child > td:nth-child(2) > a').click();
-                showToast(`已更换`, undefined, undefined, 'success')
+                showToast(`已更换`, 'success')
             } else {
                 document.querySelector('.open .custom-modal-head a[data-close="modal"]').click();
-                showToast(`************ 未识别到符合要求的供货商 ************`, undefined, undefined, 'warning')
+                showToast(`************ 未识别到符合要求的供货商 ************`, 'warning')
             }
         }, 1000);
         GM_deleteValue('dxmCurrent1688ShopName')
@@ -418,10 +421,6 @@
         document.querySelector('[uid="goodsInfo"]').click();
         showToast(`商品信息已自动录入`, undefined,undefined,'success');
         GM_deleteValue('dxmProductInfo');
-    }
-
-    function createDxmProduct(){
-        alert('alt+c 是直接创建库存商品功能, 暂未开发, 需要等手动创建商品稳定了再考虑开发该功能');
     }
 
     function extract1688CreateStockInfo() {
@@ -679,13 +678,13 @@
         }
     }
 
-    function showToast(message, animationEffectDuration=150, toastDuration=3000, colorType='info') {
+    function showToast(message, colorType='info', top='1%', right='2%', animationEffectDuration=150, toastDuration=3000) {
         GM_addStyle(
             `/* 弹窗提示优化 */
             .sf_pop_up_message {
                 position: fixed;
-                top: 1%;
-                right: 2%;
+                top: ${top};
+                right: ${right};
                 padding: 12px 20px;
                 box-shadow: 0 4px 20px rgba(50, 50, 80, 0.15);
                 border-radius: 6px;
