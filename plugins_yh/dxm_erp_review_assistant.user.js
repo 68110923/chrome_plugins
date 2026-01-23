@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.0
+// @version      1.4.1
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -152,7 +152,7 @@
             wangwangNameElement.click()
             await waitForElementTextChange('.go-shop-container', documentIframe, oldStr2, 10*1000, 500)
 
-            const message = `${valueList.map((item) => item.orderId).join('\n')}\n\n你好这${valueList.length > 1 ? valueList.length : ''}个订单号麻烦修改下运费，今天能及时发出来吗？`
+            const message = `${valueList.map((item) => item.orderId).join('\n')}\n\n你好这${valueList.length > 1 ? valueList.length : ''}个订单号麻烦修改下运费`
             const editElement = documentIframe.querySelector('.text-area > .editBox > pre')
             editElement.textContent = message;
             editElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
