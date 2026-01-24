@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.3
+// @version      1.4.4
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -93,7 +93,7 @@
         const regularAmazon = document.URL.includes('https://www.amazon.')
         const regular1688 = document.URL.includes('https://detail.1688.com/offer/')
         const regulaDxmCreateProduct = document.URL.includes('https://www.dianxiaomi.com/dxmCommodityProduct/')
-        const orderList1688 = document.URL.includes('https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html')
+        const orderList1688 = document.URL.includes('https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html') && document.URL.includes('tradeStatus=waitbuyerpay')
         const wangwangNews1688 = document.URL.includes('https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html')
         const dxmInStock = document.URL.includes('https://www.dianxiaomi.com/web/order/allocated/has?go=m10301')
         const dxmShipmentSuccessful = document.URL.includes('https://www.dianxiaomi.com/web/order/shipped/success?go=m10403')
@@ -109,18 +109,18 @@
         } else if (key_q && wangwangNews1688) {
             await sendMessageChangePrice();
         }else if (key_q && (dxmInStock || dxmShipmentSuccessful)) {
-            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_e && regular1688) {
             extract1688CreateStockInfo();
         } else if (key_e && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
             if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
         } else if (key_c) {
-            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_q) {
-            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_e) {
-            showToast(`当前网址:${document.URL}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '35%');
+            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         }
     });
 
