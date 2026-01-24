@@ -685,54 +685,46 @@
         }
     }
 
-    function showToast(message, colorType='info', top='1%', right='2%', animationEffectDuration=150, toastDuration=3000) {
-        GM_addStyle(
-            `/* 弹窗提示优化 */
-            .sf_pop_up_message {
-                position: fixed;
-                top: ${top};
-                right: ${right};
-                padding: 12px 20px;
-                box-shadow: 0 4px 20px rgba(50, 50, 80, 0.15);
-                border-radius: 6px;
-                z-index: 99999;
-                font-size: 14px;
-                font-weight: 500;
-                opacity: 0;
-                transform: translateX(100%);
-                transition: all ${animationEffectDuration/1000}s cubic-bezier(0.4, 0, 0.2, 1);
-                line-height: 1.5;
-                white-space: normal;
-                word-wrap: break-word;
-            }
-            
-            /* 弹窗显示状态（通过JS添加此类触发动画） */
-            .sf_pop_up_message.show {
-                opacity: 1;
-                transform: translateX(0);
-            }`
-        )
-        const className = 'sf_pop_up_message';
+    function showToast(message, colorType='info', top='1%', right='2%', animationEffectDuration=200, toastDuration=3000) {
+        const colorMap = {
+            success: { bg: 'rgba(65,241,100,0.9)', color: 'rgba(255,255,255)' },
+            error: { bg: 'rgba(234,44,44,0.9)', color: 'rgba(255,255,255)' },
+            warning: { bg: 'rgb(228,213,62,0.9)', color: 'rgba(255,255,255)' },
+            info: { bg: 'rgba(39,37,37,0.9)', color: 'rgba(255,255,255)' },
+        };
+        const colorConfig = colorMap[colorType] || colorMap.info;
+
         const sfPopUpMessageElement = document.createElement("div");
-        if (colorType === 'success') {
-            sfPopUpMessageElement.style.background = `rgba(40,180,99,0.9)`;
-            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
-        } else if (colorType === 'error') {
-            sfPopUpMessageElement.style.background = `rgba(230,57,57,0.9)`;
-            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
-        } else if (colorType === 'warning') {
-            sfPopUpMessageElement.style.background = `rgba(255,165,0,0.9)`;
-            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
-        } else if (colorType === 'info') {
-            sfPopUpMessageElement.style.background = `rgba(0,0,0,0.9)`;
-            sfPopUpMessageElement.style.color = `rgba(255,255,255)`;
-        }
-        sfPopUpMessageElement.className = className;
+        sfPopUpMessageElement.style.position = 'fixed';
+        sfPopUpMessageElement.style.padding = '12px 20px';
+        sfPopUpMessageElement.style.boxShadow = '0 4px 20px rgba(50, 50, 80, 0.15)';
+        sfPopUpMessageElement.style.borderRadius = '6px';
+        sfPopUpMessageElement.style.zIndex = '99999';
+        sfPopUpMessageElement.style.fontSize = '14px';
+        sfPopUpMessageElement.style.fontWeight = '500';
+        sfPopUpMessageElement.style.lineHeight = '1.5';
+        sfPopUpMessageElement.style.whiteSpace = 'normal';
+        sfPopUpMessageElement.style.wordWrap = 'break-word';
+
+        sfPopUpMessageElement.style.top = top;
+        sfPopUpMessageElement.style.right = right;
+        sfPopUpMessageElement.style.background = colorConfig.bg;
+        sfPopUpMessageElement.style.color = colorConfig.color;
         sfPopUpMessageElement.innerHTML = message.replace(/\n/g, '<br>');
+
+        sfPopUpMessageElement.style.opacity = '0';
+        sfPopUpMessageElement.style.transform = 'translateX(100%)';
+        sfPopUpMessageElement.style.transition = `all ${animationEffectDuration/1000}s cubic-bezier(0.4, 0, 0.2, 1)`;
+
         document.body.appendChild(sfPopUpMessageElement);
-        setTimeout(() => sfPopUpMessageElement.classList.add('show'), 0);
         setTimeout(() => {
-            sfPopUpMessageElement.classList.remove('show');
+            sfPopUpMessageElement.style.opacity = '1';
+            sfPopUpMessageElement.style.transform = 'translateX(0)';
+        }, 0);
+
+        setTimeout(() => {
+            sfPopUpMessageElement.style.opacity = '0';
+            sfPopUpMessageElement.style.transform = 'translateX(100%)';
             setTimeout(() => sfPopUpMessageElement.remove(), animationEffectDuration);
         }, toastDuration);
     }
