@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.8
+// @version      1.4.9
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -247,13 +247,14 @@
         inputElement.value = href.match(/\/(\d+)\.html/)[1]
         inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
         document.querySelector('#btnSelectSearch').click();
+        const productProperty = document.querySelector('[uid="productAttr"] .popoverHover').textContent.trim().replace('-','|')
         setTimeout(() => {
-            const options1Element = document.querySelector('#pairProductModal.open #goodsContent tbody > tr.content > td > a');
-            if (options1Element) {
-                options1Element.click();
-                document.querySelector('#confirmChangeRelationModal [name="changeRelation"][value="1"]').click();
-            }
-        }, 100);
+            document.querySelectorAll('.white-space').forEach((element) => {
+                if (element.textContent.includes(productProperty)){
+                    element.style.color = 'blue'
+                }
+            })
+        }, 200);
     }
 
     const dxmProductInfoMapping = {
