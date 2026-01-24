@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.9
+// @version      1.5.0
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -557,7 +557,7 @@
             '采购平台': '1688',
             '商品链接': urlMatch ? urlMatch[0] : null,
             '商品标识': get1688ProductSku(),
-            '商品价格': parseFloat(get1688TotalPrice()) + parseFloat(get1688TotalFreight())
+            '商品价格': (parseFloat(get1688TotalPrice()) + parseFloat(get1688TotalFreight())).toFixed(2)
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `  ${key}: ${value}`);
         copyToClipboard(dataList.join('\n'));
