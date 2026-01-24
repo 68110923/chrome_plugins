@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         店小秘审单助手 - ERP版
 // @namespace    http://tampermonkey.net/
-// @version      1.4.4
+// @version      1.4.5
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -57,7 +57,7 @@
             setTimeout(() => {procurementPlanMate()}, 100);
         }
         if (this._url.includes('alibabaProduct/getAlibabaSourceUrl.json')) {
-            setTimeout(() => {procurementPlan1688SkuMate()}, 1800);
+            setTimeout(() => {procurementPlan1688SkuMate()}, 1500);
         }
 
         // 监听response数据
@@ -203,8 +203,10 @@
 
     function procurementPlan1688SkuMate(){
         const skuStrOri = document.querySelector('#goodsDetailInfo .commodity .no-new-line2:nth-child(2)').textContent.trim()
-        const skuStr = skuStrOri.split(' >> ').pop().split('*')[0]
-        document.querySelector(`.boxContentMater > [data-value="${skuStr}"]`).click()
+        const skuStrs = skuStrOri.replace(/.*? >> /, '').replace(/\*[^*]*$/, '').split('|')
+        skuStrs.forEach((skuStr) => {
+            document.querySelector(`.box-item-right .box-sku-title [data-value="${skuStr}"]`).click()
+        })
     }
 
     function procurementPlanMate(){
