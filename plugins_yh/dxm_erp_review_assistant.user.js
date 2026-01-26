@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.01.26.01
-// @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
+// @version      2026.01.26.03
+// @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
 // @match        https://www.dianxiaomi.com/web/order/*
@@ -50,6 +50,7 @@
     'use strict';
     window.pinyinPro = pinyinPro;
 
+    window.addEventListener('load', initAddButton);
     // xhr POST触发
     const originalXhrOpen = XMLHttpRequest.prototype.open;
     XMLHttpRequest.prototype.open = function(method, url, ...args) {
@@ -92,7 +93,6 @@
         return originalXhrSend.apply(this, arguments);
     };
 
-
     // 按键触发
     document.addEventListener('keydown', async (e) => {
         const alt_keys = {
@@ -127,26 +127,146 @@
         } else if (key_q && wangwangNews1688) {
             await sendMessageChangePrice();
         } else if (key_q && (dxmInStock || dxmShipmentSuccessful)) {
-            alert('当前页面为已发货或已到仓订单列表页，不支持该操作')
+            await logisticsInformation();
         } else if (key_e && regular1688) {
             extract1688CreateStockInfo();
         } else if (key_e && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
             if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
-        } else if (key_q) {
-            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
-        } else if (key_e) {
-            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_h) {
-            console.log(GM_info)
             showToast(`
             ****    ${GM_info.script.name}    ****
             \nVersion: ${GM_info.script.version}
             \n\n${GM_info.script.description}
-            \n\n\n使用过程中若遇到问题，请联系作者
+            \n\n\n使用过程中若遇到问题，请<a href="${GM_info.script.supportURL}" target="_blank">联系作者</a>
             `, 'info', '20%', '38%');
+        } else {
+            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         }
     });
+
+    async function initAddButton(){
+        const addButtonLogisticsInformation = [
+            'https://www.dianxiaomi.com/web/order/allocated/has?go=m10301',
+            'https://www.dianxiaomi.com/web/order/shipped/success?go=m10403',
+        ]
+        if (addButtonLogisticsInformation.includes(window.location.href)) {
+            const addButtonContainer = await waitForElement('.tool-bar:not([style]) .btn-left > .order-actions-buttons', 5*1000);
+            const buttonLogisticsInformation = GM_addElement(
+                addButtonContainer,
+                'button',
+                {'data-v-11a55e37': null,class: 'css-1oz1bg8 ant-btn ant-btn-primary buttons-item', textContent: 'IT:物流状态', type: 'button',}
+            );
+            buttonLogisticsInformation.addEventListener('click', async () => {await logisticsInformation();});
+        }
+    }
+
+    async function logisticsInformation(){
+        showToast('正在获取物流状态，请稍后...', 'info', '20%', '38%');
+        const logisticsStatus = {
+            '已上网': {
+                selector: '[class="order-mark-block"][style="background-color: rgb(195, 120, 223);"] > .icon_ship',
+                logisticsNumber: [],
+            },
+            '未上网': {
+                logisticsNumber: [],
+            },
+            '未知状态': {
+                logisticsNumber: [],
+            },
+        }
+        const trLevel1Elements = await document.querySelectorAll('.first-level-row')
+        let trackUrlParams = new URLSearchParams()
+        for (const trLevel1Element of trLevel1Elements) {
+            if (trLevel1Element.querySelector(logisticsStatus['已上网'].selector)){continue}
+            const logisticsButtonElement = await trLevel1Element.nextElementSibling.querySelector('.pointer[title="点击查看物流追踪"]')
+            const rowId = trLevel1Element.nextElementSibling.getAttribute('rowid')
+            if (!logisticsButtonElement){continue}
+            const logisticsNumber = logisticsButtonElement.textContent.trim()
+
+            const responseJson = await fetchLogisticsData(logisticsNumber, trackUrlParams)
+            console.log(responseJson)
+            if (responseJson.meta.code === 200 && responseJson.shipments[0].pre_status !== 0) {
+                logisticsStatus['已上网'].logisticsNumber.push(logisticsNumber)
+                fetch('/api/package/addOrUpdateUserComment.json',{
+                    method: 'POST',
+                    headers: {'content-type': 'application/x-www-form-urlencoded',},
+                    body: `orderId=${rowId}&isGreen=0&isYellow=0&isOrange=0&isRed=0&isViolet=32&isBlue=0&cornflowerBlue=0&pink=0&teal=0&turquoise=0&unmarked=0&history=`,
+                })
+            } else if (responseJson.meta.code === 200 && responseJson.shipments[0].pre_status === 0) {
+                logisticsStatus['未上网'].logisticsNumber.push(logisticsNumber)
+            } else {
+                logisticsStatus['未知状态'].logisticsNumber.push(logisticsNumber)
+            }
+        }
+        showToast(`已获取本页订单物流状态\n\n已上网: ${logisticsStatus['已上网'].logisticsNumber.length}个订单\n未上网: ${logisticsStatus['未上网'].logisticsNumber.length}个订单\n未知状态: ${logisticsStatus['未知状态'].logisticsNumber.length}个订单`, 'success', '1%', '2%');
+        console.log(logisticsStatus)
+    }
+
+    async function fetchLogisticsData(logisticsNumber, trackUrlParams) {
+        return new Promise((resolve, reject) => {
+            // 1. 第一步：构造纯JS对象（关键！不要手动拼字符串）
+            const requestBodyObj = {
+                data: [{
+                    num: logisticsNumber,       // 直接传变量，无需拼字符串
+                    fc: trackUrlParams.get('fc') || '191011',
+                    sc: trackUrlParams.get('sc') || '0',
+                    ref: trackUrlParams.get('rk') || '2115526'
+                }],
+                guid: "",
+                timeZoneOffset: -480
+            };
+
+            // 2. 第二步：一次性序列化（得到无反斜杠的纯JSON字符串）
+            const requestBody = JSON.stringify(requestBodyObj);
+
+            // 3. GM_xmlhttpRequest请求配置
+            GM_xmlhttpRequest({
+                method: 'POST',
+                url: 'https://t.17track.net/track/restapi',
+                headers: {
+                    accept: 'application/json, text/javascript, */*; q=0.01',
+                    'accept-language': 'zh-CN,zh;q=0.9',
+                    'cache-control': 'no-cache',
+                    'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
+                    dnt: '1',
+                    origin: 'https://www.dianxiaomi.com',
+                    pragma: 'no-cache',
+                    priority: 'u=1, i',
+                    referer: 'https://www.dianxiaomi.com/',
+                    'sec-ch-ua': '"Not(A:Brand";v="8", "Chromium";v="144", "Google Chrome";v="144"',
+                    'sec-ch-ua-mobile': '?0',
+                    'sec-ch-ua-platform': '"Windows"',
+                    'sec-fetch-dest': 'empty',
+                    'sec-fetch-mode': 'cors',
+                    'sec-fetch-site': 'cross-site',
+                    'user-agent': navigator.userAgent,
+                    'Accept-Encoding': 'gzip, deflate, br',
+                    Connection: 'keep-alive'
+                },
+                data: requestBody, // 直接传序列化后的字符串（无反斜杠）
+                timeout: 10000,
+                onload: function (response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        try {
+                            const responseJson = JSON.parse(response.responseText);
+                            resolve(responseJson);
+                        } catch (err) {
+                            reject(new Error(`JSON解析失败：${err.message}`));
+                        }
+                    } else {
+                        reject(new Error(`请求失败：${response.status}，响应：${response.responseText}`));
+                    }
+                },
+                onerror: function (err) {
+                    reject(new Error(`网络请求失败：${err.message || '未知错误'}`));
+                },
+                ontimeout: function () {
+                    reject(new Error('请求超时（10秒）'));
+                }
+            });
+        });
+    }
 
     async function sendMessageChangePrice(){
         const allOrderList = GM_getValue('1688OrderList') || {};
@@ -777,6 +897,19 @@
                 const newStr = findElementInNestedShadowDOM(elementSelector, root)[0]?.textContent.trim() || '';
                 if (newStr && newStr !== oldStr) clearInterval(timer) || resolve();
             }, timeoutInterval);
+        });
+    }
+
+    async function waitForElement(selector, timeout = 5000, interval = 300) {
+        return new Promise(resolve => {
+            const start = Date.now();
+            const timer = setInterval(() => {
+                if (Date.now() - start >= timeout) return clearInterval(timer) || resolve(null);
+                const el = selector.startsWith('/')
+                    ? document.evaluate(selector, document, null, XPathResult.FIRST_ORDERED_NODE_TYPE).singleNodeValue
+                    : document.querySelector(selector);
+                el && (clearInterval(timer) || resolve(el));
+            }, interval);
         });
     }
 })();
