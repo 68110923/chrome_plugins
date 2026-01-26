@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         店小秘审单助手 - ERP版
+// @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      1.5.1
+// @version      2026.01.26.01
 // @description  1)店小秘自动添加初始备注, 2)Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -17,6 +17,7 @@
 // @match        https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html*
 // @homepageURL  https://68110923.github.io/
 // @grant        unsafeWindow
+// @grant        GM_info
 // @grant        GM_addStyle
 // @grant        GM_addElement
 // @grant        GM_log
@@ -97,14 +98,14 @@
         const alt_keys = {
             q: ['q', 'Q'],
             e: ['e', 'E'],
-            c: ['c', 'C'],
+            h: ['h', 'H'],
         };
         if (!e.altKey || !Object.values(alt_keys).flat().includes(e.key)) {return;}
         e.preventDefault();
         e.stopPropagation();
         const key_q = alt_keys.q.includes(e.key)
         const key_e = alt_keys.e.includes(e.key)
-        const key_c = alt_keys.c.includes(e.key)
+        const key_h = alt_keys.h.includes(e.key)
 
         const regularTiktok = document.URL.includes('https://www.tiktok.com/')
         const regularAmazon = document.URL.includes('https://www.amazon.')
@@ -125,19 +126,25 @@
             await extractOrdersAwaitingPayment();
         } else if (key_q && wangwangNews1688) {
             await sendMessageChangePrice();
-        }else if (key_q && (dxmInStock || dxmShipmentSuccessful)) {
-            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
+        } else if (key_q && (dxmInStock || dxmShipmentSuccessful)) {
+            alert('当前页面为已发货或已到仓订单列表页，不支持该操作')
         } else if (key_e && regular1688) {
             extract1688CreateStockInfo();
         } else if (key_e && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
             if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
-        } else if (key_c) {
-            showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_q) {
             showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
         } else if (key_e) {
             showToast(`当前网址:\n${document.URL.replace(/(.{50})/g, '$1\n')}\n\n该网址 alt + ${e.key} 功能尚未开发`, 'error', '20%', '38%');
+        } else if (key_h) {
+            console.log(GM_info)
+            showToast(`
+            ****    ${GM_info.script.name}    ****
+            \nVersion: ${GM_info.script.version}
+            \n\n${GM_info.script.description}
+            \n\n\n使用过程中若遇到问题，请联系作者
+            `, 'info', '20%', '38%');
         }
     });
 
