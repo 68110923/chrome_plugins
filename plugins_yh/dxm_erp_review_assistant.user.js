@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.01.26.03
+// @version      2026.01.27.01
 // @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -15,6 +15,7 @@
 // @match        https://www.dianxiaomi.com/dxmPurchasePlan/purchasePlan.htm*
 // @match        https://air.1688.com/app/ctf-page/trade-order-list/buyer-order-list.html*
 // @match        https://air.1688.com/app/ocms-fusion-components-1688/def_cbu_web_im/index.html*
+// @match        https://t.17track.net/track/restapi
 // @homepageURL  https://68110923.github.io/
 // @grant        unsafeWindow
 // @grant        GM_info
@@ -162,7 +163,7 @@
     }
 
     async function logisticsInformation(){
-        showToast('正在获取物流状态，请稍后...', 'info', '20%', '38%');
+        showToast('正在获取物流状态...', 'info', '1%', '2%');
         const logisticsStatus = {
             '已上网': {
                 selector: '[class="order-mark-block"][style="background-color: rgb(195, 120, 223);"] > .icon_ship',
@@ -171,18 +172,26 @@
             '未上网': {
                 logisticsNumber: [],
             },
-            '未知状态': {
+            '查询频繁': {
+                logisticsNumber: [],
+            },
+            '已存在上网标记': {
+                logisticsNumber: [],
+            },
+            '无物流号': {
                 logisticsNumber: [],
             },
         }
         const trLevel1Elements = await document.querySelectorAll('.first-level-row')
         let trackUrlParams = new URLSearchParams()
-        for (const trLevel1Element of trLevel1Elements) {
-            if (trLevel1Element.querySelector(logisticsStatus['已上网'].selector)){continue}
+        for (const [index, trLevel1Element] of trLevel1Elements.entries()) {
             const logisticsButtonElement = await trLevel1Element.nextElementSibling.querySelector('.pointer[title="点击查看物流追踪"]')
-            const rowId = trLevel1Element.nextElementSibling.getAttribute('rowid')
-            if (!logisticsButtonElement){continue}
+            if (!logisticsButtonElement){logisticsStatus['无物流号'].logisticsNumber.push(null);continue}
             const logisticsNumber = logisticsButtonElement.textContent.trim()
+            if (trLevel1Element.querySelector(logisticsStatus['已上网'].selector)){logisticsStatus['已存在上网标记'].logisticsNumber.push(logisticsNumber);continue}
+            const rowId = trLevel1Element.nextElementSibling.getAttribute('rowid')
+
+            if (index % 20 === 0 && index !== 0){showToast(`已处理 ${index}/${trLevel1Elements.length}`, 'info', '1%', '2%', 200, 6000);await new Promise(resolve => setTimeout(resolve, 3000));}
 
             const responseJson = await fetchLogisticsData(logisticsNumber, trackUrlParams)
             console.log(responseJson)
@@ -196,10 +205,14 @@
             } else if (responseJson.meta.code === 200 && responseJson.shipments[0].pre_status === 0) {
                 logisticsStatus['未上网'].logisticsNumber.push(logisticsNumber)
             } else {
-                logisticsStatus['未知状态'].logisticsNumber.push(logisticsNumber)
+                logisticsStatus['查询频繁'].logisticsNumber.push(logisticsNumber)
+                showToast(`识别到查询频繁 等待5秒...`, 'warning', '1%', '2%', 200, 4000);
+                await new Promise(resolve => setTimeout(resolve, 5000));
             }
         }
-        showToast(`已获取本页订单物流状态\n\n已上网: ${logisticsStatus['已上网'].logisticsNumber.length}个订单\n未上网: ${logisticsStatus['未上网'].logisticsNumber.length}个订单\n未知状态: ${logisticsStatus['未知状态'].logisticsNumber.length}个订单`, 'success', '1%', '2%');
+
+        const logisticsStatusStr = Object.entries(logisticsStatus).map(([key, value]) => value.logisticsNumber.length === 0 ? null : `${key}: ${value.logisticsNumber.length}`).filter(Boolean).join('\n')
+        showToast(`已获取本页订单物流状态\n\n${logisticsStatusStr}`, 'success', '1%', '2%');
         console.log(logisticsStatus)
     }
 
@@ -252,17 +265,17 @@
                             const responseJson = JSON.parse(response.responseText);
                             resolve(responseJson);
                         } catch (err) {
-                            reject(new Error(`JSON解析失败：${err.message}`));
+                            resolve(null);
                         }
                     } else {
-                        reject(new Error(`请求失败：${response.status}，响应：${response.responseText}`));
+                        resolve(null);
                     }
                 },
                 onerror: function (err) {
-                    reject(new Error(`网络请求失败：${err.message || '未知错误'}`));
+                    resolve(null);
                 },
                 ontimeout: function () {
-                    reject(new Error('请求超时（10秒）'));
+                    resolve(null);
                 }
             });
         });
