@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.01.27.02
+// @version      2026.01.28.01
 // @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -286,24 +286,23 @@
 
     async function sendMessageChangePrice(){
         const allOrderList = GM_getValue('1688OrderList') || {};
-        const sellerKeys = Object.keys(allOrderList);
+        const sellerKeys = Object.keys(allOrderList).filter(key => key !== 'batchDate');
         const notifiedSellerList = GM_getValue('1688NotifiedSellerList') || [];
         if (!sellerKeys.length || allOrderList.batchDate !== new Date().toLocaleDateString()) {GM_deleteValue('1688OrderList');GM_deleteValue('1688NotifiedSellerList');showToast('请先在1688订单列表页点击任意订单，获取订单信息', 'error'); return}
 
         const documentIframe = document.querySelector('iframe[src*="app/ocms-fusion-components-1688/def_cbu_web_im_core/index.html"]').contentDocument
         for (const [index, key] of sellerKeys.entries()) {
-            console.log(index)
             const valueList = allOrderList[key];
             const totalFreight = valueList.reduce((acc, cur) => acc + cur.freight, 0).toFixed(2)
-            if (key === 'batchDate' || notifiedSellerList.includes(key) || totalFreight < 6) {continue;}
+            if (notifiedSellerList.includes(key) || totalFreight < 6) {continue;}
 
+            await new Promise(resolve => setTimeout(resolve, 500));
             const inputElement = documentIframe.querySelector('[placeholder="搜索联系人"]')
-            inputElement.focus();
             inputElement.value = key
             inputElement.dispatchEvent(new Event('input', {bubbles: true, cancelable: true}));
             const oldStr1 = documentIframe.querySelector('.conversation > .name')?.textContent.trim() || crypto.randomUUID()
             documentIframe.querySelector('.anticon-search').click()
-            await waitForElementTextChange('.conversation > .name', documentIframe, oldStr1,10*1000, 50)
+            await waitForElementTextChange('.conversation > .name', documentIframe, oldStr1,1.5*1000, 50)
 
             const wangwangNameElement = documentIframe.querySelector('.conversation > .name')
             if (!wangwangNameElement || wangwangNameElement.textContent.trim() !== key) {showToast(`未找到旺旺:${key}`, 'error'); continue;}
@@ -319,10 +318,9 @@
 
             notifiedSellerList.push(key);
             GM_setValue('1688NotifiedSellerList', notifiedSellerList);
-            showToast(`旺旺:${key} 总运费:${totalFreight}  已通知 ${notifiedSellerList.length}/${sellerKeys.length} 个`);
-            await new Promise(resolve => setTimeout(resolve, 500));
+            showToast(`成功(${index + 1}) 旺旺:${key}  总运费:${totalFreight}`);
         }
-        showToast(`当前识别到 ${sellerKeys.length - 1} 个卖家，今日已通知 ${notifiedSellerList.length} 个卖家改价`, 'success')
+        showToast(`共 ${sellerKeys.length} 个卖家，今日已通知 ${notifiedSellerList.length} 个卖家改价`, 'success')
     }
 
     async function extractOrdersAwaitingPayment(){
@@ -357,8 +355,8 @@
         console.log(dataSet)
         showToast(`从${totalOrderCount}条订单中，识别到${Object.keys(dataSet).length}个不同的卖家`, 'success')
         dataSet['batchDate'] = new Date().toLocaleDateString()
+        if (GM_getValue('1688OrderList', {}).batchDate !== dataSet['batchDate']){GM_setValue('1688NotifiedSellerList', [])}
         GM_setValue('1688OrderList', dataSet)
-        if (GM_getValue('1688OrderList', {}).batchDate !== new Date().toLocaleDateString()){GM_setValue('1688NotifiedSellerList', [])}
     }
 
     async function procurementPlan1688SkuMate(){
