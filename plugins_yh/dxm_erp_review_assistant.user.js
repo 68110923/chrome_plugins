@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.01.28.01
+// @version      2026.01.29.01
 // @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -133,7 +133,7 @@
             extract1688CreateStockInfo();
         } else if (key_e && regulaDxmCreateProduct){
             const isGroup = document.querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"]')
-            if (isGroup) {enterStockInfoToDxmCombination()} else {enterStockInfoToDxm()}
+            if (isGroup) {enterStockInfoToDxmCombination()} else {await enterStockInfoToDxm()}
         } else if (key_h) {
             showToast(`
             ****    ${GM_info.script.name}    ****
@@ -418,8 +418,9 @@
     const dxmProductInfoMapping = {
         url: '商品链接',
         productImgUrl: '主图链接',
-        urlCode: '商品唯一识别码',
-        sku: '型号唯一识别码',
+        productId: '产品ID',
+        skuString: 'SKU字符串',
+        skuId: 'SKU ID',
         totalPrice: '总价',
         averagePrice: '均格',
         count: '数量',
@@ -516,7 +517,25 @@
         showToast(`组合商品信息已自动录入`,'success');
     }
 
-    function enterStockInfoToDxm() {
+    async function dxmProductManagementFuzzySearchExist(searchField, searchValue) {
+        const searchFieldMap = {
+            '识别码': 3,
+            '商品SKU': 1,
+        }
+        if (!searchFieldMap[searchField]) {console.error(`暂不支持 ${searchField} 字段查询`);return;}
+        const params = `pageNo=1&pageSize=100&searchType=${searchFieldMap[searchField]}&searchValue=${searchValue}&productPxId=1&productPxSxId=0&fullCid=&productMode=-1&saleMode=-1&productSearchType=0&productGroupLxId=1`
+        const response = await fetch(`/dxmCommodityProduct/getImgUrlExceptionStatData.json`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: params,
+        });
+        const data = await response.json();
+        return data.total === 0;
+    }
+
+    async function enterStockInfoToDxm() {
         const productInfo = GM_getValue('dxmProductInfo');
         if (!productInfo) {
             showToast('请先提取1688详情页信息!','warning');
@@ -526,8 +545,18 @@
         // 商品SKU
         const hiddenInfo = document.querySelector('input#hiddenInfo');
         const dataVid = hiddenInfo.getAttribute('data-vid')
-        const skuElement = document.querySelector('input#proSku');
-        skuElement.value = `${dataVid}-${productInfo.urlCode}-A${Date.now().toString().slice(-4)}`;
+        // 验证识别码和商品sku是否唯一
+        if (!await dxmProductManagementFuzzySearchExist('识别码', dataVid)) {
+            showToast(`包含 ${dataVid} 的[识别码]已存在, 请勿重复录入!`,'error');
+            return;
+        }
+        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}-${productInfo.skuId}`)) {
+            showToast(`包含 ${productInfo.productId}-${productInfo.skuId} 的[商品SKU]已存在, 请勿重复录入!`,'error');
+            return;
+        }
+
+        const productSkuElement = document.querySelector('input#proSku');
+        productSkuElement.value = `${productInfo.productId}-${productInfo.skuId}-XX_XX_XX`;
 
         // 商品分类:
         const categorySelectElement = document.querySelector('#catagoryFullName');
@@ -536,18 +565,18 @@
 
         // 中文名称
         const titleZHElement = document.querySelector('input#proName');
-        titleZHElement.value = `${productInfo.title} >> ${productInfo.sku}`;
+        titleZHElement.value = `${productInfo.title} >> ${productInfo.skuString}`;
 
         // 识别码
         const identifierElement = document.querySelector('input#proSbm');
-        identifierElement.value = skuElement.value;
+        identifierElement.value = dataVid;
 
         // 来源URL
         if (document.querySelectorAll('input[name="sourceUrl"]').length < 2) {
             document.querySelector('.addSourceUrl').click();
         }
         const sourceUrlElements = document.querySelectorAll('input[name="sourceUrl"]');
-        const sourceUrls = [`https://www.ozon.ru/product/${dataVid}/`, productInfo.url];
+        const sourceUrls = [`https://www.ozon.ru/product/${dataVid}/`, `${productInfo.url}?sku=${productInfo.skuString}`];
         sourceUrls.forEach((sourceUrl, index) => {
             sourceUrlElements[index].value = sourceUrl;
         });
@@ -593,23 +622,30 @@
         const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
         const totalPrice = get1688TotalPrice();
 
-        const skuAndCount = get1688ProductSku();
+        const skuAndCount = get1688ProductSkuString();
         if (!skuAndCount || skuAndCount.split(',').length > 1) {showToast('请先选择商品型号和数量, 不能同时选择多个型号', 'error');return;}
         const lastStarIndex = skuAndCount.lastIndexOf('*');
-        const [sku, count] = lastStarIndex === -1 ? [skuAndCount, ''] : [skuAndCount.slice(0, lastStarIndex), skuAndCount.slice(lastStarIndex + 1)];
+        let [skuString, skuCount] = lastStarIndex === -1 ? [skuAndCount, ''] : [skuAndCount.slice(0, lastStarIndex), skuAndCount.slice(lastStarIndex + 1)];
 
         const titleElement = document.querySelector('.title-content h1') || document.querySelector('[class="title-text"]');
         const title = titleElement ? titleElement.textContent.trim() : null;
         if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件', 'error');return;}
+        let skuData = unsafeWindow.context.result.data.Root.fields.dataJson.skuModel.skuInfoMapOriginal[skuString];
+        if (!skuData){
+            skuString = skuString.split(';').at(-1)
+            skuData = unsafeWindow.context.result.data.Root.fields.dataJson.skuModel.skuInfoMapOriginal[skuString];
+        }
+        if (!skuData) {showToast(`${skuString} 提取SKU 失败, 请发网页截图和链接给IT修复插件`, 'error');return;}
 
         const dxmProductInfo = {
             url: urlMatch[0],
             title: title,
-            urlCode: urlMatch[1],
-            sku: sku,
-            count: count,
+            productId: urlMatch[1],
+            skuId: skuData.skuId,
+            skuString: skuString,
+            count: skuCount,
             totalPrice: totalPrice,
-            averagePrice: (parseFloat(totalPrice) / parseInt(count)).toFixed(2),
+            averagePrice: (parseFloat(totalPrice) / parseInt(skuCount)).toFixed(2),
         }
         GM_setValue('dxmProductInfo', dxmProductInfo);
         showToast(Object.entries(dxmProductInfo).map(([key, value]) => `${dxmProductInfoMapping[key]}: ${value}`).join('\n'));
@@ -637,7 +673,7 @@
         return parseFloat(freight).toFixed(2);
     }
 
-    function get1688ProductSku(){
+    function get1688ProductSkuString(){
         // 常规方案
         const allPropertyElements = document.querySelectorAll('#cartScrollBar > #skuSelection .active > .label-name');
         const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim()).filter(Boolean);
@@ -648,27 +684,27 @@
             const sku2NameElement = sku2NameElementClosest.querySelector('.item-label') || sku2NameElementClosest.querySelector('.gyp-pro-table-title > p')
             if (sku2NameElement){
                 const sku2Name = sku2NameElement.getAttribute('title') || sku2NameElement.textContent.trim();
-                return `${[...allProperty, sku2Name].filter(Boolean).join('|')}*${sku2.value}`;
+                return `${[...allProperty, sku2Name].filter(Boolean).join(';')}*${sku2.value}`; // 因为content不包含allProperty,
             }
         });
 
         // https://detail.1688.com/offer/927463287246.html
         // https://detail.1688.com/offer/858885203091.html
         if (skuList.filter(Boolean).length === 0) {
-            console.log('927463287246')
+            console.log('927463287246 方案')
             const allPropertyElements = document.querySelectorAll('.sku-props-list > .item-selected > .prop-item-text')
             const allProperty = Array.from(allPropertyElements).map(skuElement => skuElement.textContent.trim());
             const countElements = document.querySelectorAll('.sku-list-item:has(input:not([value="0"]))');
             skuList = Array.from(countElements).map(countElement => {
                 const subSku = countElement.querySelector('.sku-item-name-text').getAttribute('title');
                 const count = countElement.querySelector('input').value;
-                return `${allProperty.join('|')}|${subSku}*${count}`
+                return `${allProperty.join(';')};${subSku}*${count}`
             });
         }
 
         // https://detail.1688.com/offer/746259328464.html
         if (skuList.filter(Boolean).length === 0) {
-            console.log('746259328464')
+            console.log('746259328464 方案')
             const skuFixedElement = document.querySelector('.prop-item-inner-wrapper.active > .prop-name');
             const skuFixedText = skuFixedElement ? skuFixedElement.getAttribute('title').trim() : null;
             const skuElements = document.querySelectorAll('#sku-count-widget-wrapper > .sku-item-wrapper');
@@ -676,14 +712,14 @@
                 const countElement = skuElement.querySelector('input');
                 if (countElement && countElement.value > 0) {
                     const skuName = skuElement.querySelector('.sku-item-name').textContent.trim();
-                    return `${[skuFixedText, skuName].filter(Boolean).join('|')}*${countElement.value}`;
+                    return `${[skuFixedText, skuName].filter(Boolean).join(';')}*${countElement.value}`;
                 }
             });
         }
 
         // https://detail.1688.com/offer/735420835508.html
         if (skuList.filter(Boolean).length === 0) {
-            console.log('735420835508')
+            console.log('735420835508 方案')
             const skuFixedElements = document.querySelectorAll('.filters > .radio-list li.selected > button');
             const skuFixedText = Array.from(skuFixedElements).map(skuElement => skuElement.getAttribute('title').trim()).join('_');
             const skuElements = document.querySelectorAll('.next-table-lock > .next-table-inner > .next-table-body tr');
@@ -691,30 +727,32 @@
                 const countElement = skuElement.querySelector('input');
                 if (countElement && countElement.value > 0) {
                     const skuName = skuElement.querySelector('td.first').textContent.trim();
-                    return `${skuFixedText}|${skuName}*${countElement.value}`;
+                    return `${skuFixedText};${skuName}*${countElement.value}`; // 因为content不包含skuFixedText
                 }
             });
         }
 
         // https://detail.1688.com/offer/1008362318683.html 补充:单规格商品
         if (skuList.filter(Boolean).length === 0) {
-            console.log('1008362318683')
+            console.log('1008362318683 方案')
             const skuElement = document.querySelector('.single-sku-title > .single-sku-item > span:nth-child(2)') || document.querySelector('.industry-pro-sku-selection-props-panel li:nth-child(1) > span:nth-child(2)');
             const skuContentElement = document.querySelector('.single-price-warp .price-title input') || document.querySelector('.gyp-pro-table-only-one-sku .ant-input-number-input-wrap > input');
             if (skuElement && skuContentElement) {
                 skuList.push(`${skuElement.textContent.trim()}*${skuContentElement.value}`);
             }
         }
-        console.log(skuList);
         return skuList.filter(Boolean).join(',')
     }
 
     function extract1688Notes() {
         const urlMatch = document.URL.match(/https:\/\/detail\.1688\.com\/offer\/(\d+)\.html/);
+        const skuString = get1688ProductSkuString();
+        if (!skuString) {showToast('未提取到商品SKU, 如已勾选商品, 请发网页截图和链接给IT修复插件', 'error');return;}
+
         const dataDict = {
             '采购平台': '1688',
             '商品链接': urlMatch ? urlMatch[0] : null,
-            '商品标识': get1688ProductSku(),
+            '商品标识': skuString,
             '商品价格': (parseFloat(get1688TotalPrice()) + parseFloat(get1688TotalFreight())).toFixed(2)
         }
         const dataList = Object.entries(dataDict).map(([key, value]) => `  ${key}: ${value}`);
