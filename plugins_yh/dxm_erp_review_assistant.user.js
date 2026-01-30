@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.01.29.01
+// @version      2026.01.30.01
 // @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -517,7 +517,9 @@
         showToast(`组合商品信息已自动录入`,'success');
     }
 
-    async function dxmProductManagementFuzzySearchExist(searchField, searchValue) {
+    async function dxmProductManagementFuzzySearchEmpty(searchField, searchValue) {
+        if (!searchValue) {return true;}
+
         const searchFieldMap = {
             '识别码': 3,
             '商品SKU': 1,
@@ -546,9 +548,9 @@
         const hiddenInfo = document.querySelector('input#hiddenInfo');
         const dataVid = hiddenInfo.getAttribute('data-vid')
         // 验证识别码和商品sku是否唯一
-        if (!await dxmProductManagementFuzzySearchExist('识别码', dataVid)) {showToast(`包含 ${dataVid} 的[识别码]已存在, 请勿重复录入!`,'error');return;}
-        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}-${productInfo.skuId}`)) {showToast(`包含 ${productInfo.productId}-${productInfo.skuId} 的[商品SKU]已存在, 请勿重复录入!`,'error');return;}
-        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}`)) {showToast(`包含 ${productInfo.productId} 的[商品SKU]已存在, 请检查规格是否相同!`,'warning', '10%', '35%');}
+        if (!await dxmProductManagementFuzzySearchEmpty('识别码', dataVid)) {showToast(`包含 ${dataVid} 的[识别码]已存在, 请勿重复录入!`,'error');return;}
+        if (!await dxmProductManagementFuzzySearchEmpty('商品SKU', `${productInfo.productId}-${productInfo.skuId}`)) {showToast(`包含 ${productInfo.productId}-${productInfo.skuId} 的[商品SKU]已存在, 请勿重复录入!`,'error');return;}
+        if (!await dxmProductManagementFuzzySearchEmpty('商品SKU', `${productInfo.productId}`)) {showToast(`包含 ${productInfo.productId} 的[商品SKU]已存在, 请检查规格是否相同!`,'warning', '10%', '35%');}
 
         const productSkuElement = document.querySelector('input#proSku');
         productSkuElement.value = `${productInfo.productId}-${productInfo.skuId}-XX_XX_XX`;
@@ -625,18 +627,20 @@
         const titleElement = document.querySelector('.title-content h1') || document.querySelector('[class="title-text"]');
         const title = titleElement ? titleElement.textContent.trim() : null;
         if (!title) {showToast('提取商品标题失败, 请发网页截图和链接给IT修复插件', 'error');return;}
-        let skuData = unsafeWindow.context.result.data.Root.fields.dataJson.skuModel.skuInfoMapOriginal[skuString];
-        if (!skuData){
+
+        const allSkuDict = Object.fromEntries(Object.entries(unsafeWindow.context.result.data.Root.fields.dataJson.skuModel.skuInfoMapOriginal).map(([oldKey, value]) => [oldKey.replace(/&gt/g, ''),value]));
+        let skuDict = allSkuDict[skuString];
+        if (!skuDict){
             skuString = skuString.split(';').at(-1)
-            skuData = unsafeWindow.context.result.data.Root.fields.dataJson.skuModel.skuInfoMapOriginal[skuString];
+            skuDict = allSkuDict[skuString];
         }
-        if (!skuData) {showToast(`${skuString} 提取SKU 失败, 请发网页截图和链接给IT修复插件`, 'error');return;}
+        if (!skuDict) {showToast(`${skuString} 提取 [SKU ID] 失败, 请发网页截图和链接给IT修复插件`, 'error');return;}
 
         const dxmProductInfo = {
             url: urlMatch[0],
             title: title,
             productId: urlMatch[1],
-            skuId: skuData.skuId,
+            skuId: skuDict.skuId,
             skuString: skuString,
             count: skuCount,
             totalPrice: totalPrice,
