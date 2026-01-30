@@ -546,14 +546,9 @@
         const hiddenInfo = document.querySelector('input#hiddenInfo');
         const dataVid = hiddenInfo.getAttribute('data-vid')
         // 验证识别码和商品sku是否唯一
-        if (!await dxmProductManagementFuzzySearchExist('识别码', dataVid)) {
-            showToast(`包含 ${dataVid} 的[识别码]已存在, 请勿重复录入!`,'error');
-            return;
-        }
-        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}-${productInfo.skuId}`)) {
-            showToast(`包含 ${productInfo.productId}-${productInfo.skuId} 的[商品SKU]已存在, 请勿重复录入!`,'error');
-            return;
-        }
+        if (!await dxmProductManagementFuzzySearchExist('识别码', dataVid)) {showToast(`包含 ${dataVid} 的[识别码]已存在, 请勿重复录入!`,'error');return;}
+        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}-${productInfo.skuId}`)) {showToast(`包含 ${productInfo.productId}-${productInfo.skuId} 的[商品SKU]已存在, 请勿重复录入!`,'error');return;}
+        if (!await dxmProductManagementFuzzySearchExist('商品SKU', `${productInfo.productId}`)) {showToast(`包含 ${productInfo.productId} 的[商品SKU]已存在, 请检查规格是否相同!`,'warning', '10%', '35%');}
 
         const productSkuElement = document.querySelector('input#proSku');
         productSkuElement.value = `${productInfo.productId}-${productInfo.skuId}-XX_XX_XX`;
