@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Samforo工具箱
 // @namespace    http://tampermonkey.net/
-// @version      2026.02.04.01
+// @version      2026.02.04.02
 // @description  1) 店小秘自动添加初始备注, 2) Amazon商品数据提取, 3) TikTok商品数据提取, 4) 1688商品数据提取 等等功能
 // @author       大大怪将军
 // @icon64       data:image/svg+xml;base64,PHN2ZyB0PSIxNzY5Mzk0MDkyNTEwIiBjbGFzcz0iaWNvbiIgdmlld0JveD0iMCAwIDEwMjQgMTAyNCIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHAtaWQ9Ijg2OTUiIHdpZHRoPSIyMDAiIGhlaWdodD0iMjAwIj48cGF0aCBkPSJNNTA1LjA4OCA1MTMuMTI2NG0tNDUwLjgxNiAwYTQ1MC44MTYgNDUwLjgxNiAwIDEgMCA5MDEuNjMyIDAgNDUwLjgxNiA0NTAuODE2IDAgMSAwLTkwMS42MzIgMFoiIGZpbGw9IiNDNjVFREIiIHAtaWQ9Ijg2OTYiPjwvcGF0aD48cGF0aCBkPSJNNDQ0LjcyMzIgNDIwLjMwMDhoMTE4LjczMjhWNDcyLjU3Nkg0NDQuNzIzMnoiIGZpbGw9IiNGRkZGRkYiIHAtaWQ9Ijg2OTciPjwvcGF0aD48cGF0aCBkPSJNMzgyLjMxMDQgNDE1LjIzMnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNzQuNzQ1NlYzMzUuMjU3NmMwLTM4LjA0MTYtMzAuODczNi02OC45MTUyLTY4LjkxNTItNjguOTE1MkgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnoiIGZpbGw9IiNCRDUwRDMiIHAtaWQ9Ijg2OTgiPjwvcGF0aD48cGF0aCBkPSJNNjI1Ljg2ODggNDc3LjY0NDh2Ni40NTEyYzAgMjguMDU3Ni0yMi44MzUyIDUwLjg5MjgtNTAuODkyOCA1MC44OTI4SDQzMy4yMDMyYy0yOC4wNTc2IDAtNTAuODkyOC0yMi44MzUyLTUwLjg5MjgtNTAuODkyOHYtNi40NTEySDIwOS4yMDMydjIxOS4yODk2YzAgMzguMDQxNiAzMC44NzM2IDY4LjkxNTIgNjguOTE1MiA2OC45MTUyaDQ1My41Mjk2YzM4LjA0MTYgMCA2OC45MTUyLTMwLjg3MzYgNjguOTE1Mi02OC45MTUyVjQ3Ny42NDQ4aC0xNzQuNjk0NHpNNzMxLjY0OCAyNjYuMzQyNEgyNzguMTE4NGMtMzguMDQxNiAwLTY4LjkxNTIgMzAuODczNi02OC45MTUyIDY4LjkxNTJWNDE1LjIzMmgxNzMuMTA3MnYtNi40NTEyYzAtMjguMDU3NiAyMi44MzUyLTUwLjg5MjggNTAuODkyOC01MC44OTI4aDE0MS43NzI4YzI4LjA1NzYgMCA1MC44OTI4IDIyLjgzNTIgNTAuODkyOCA1MC44OTI4djYuNDUxMmgxNjMuMzc5MmE0NTIuNjg5OTIgNDUyLjY4OTkyIDAgMCAwIDguNzU1Mi05OC42NjI0Yy04LjE5Mi0yOC45NzkyLTM0Ljc2NDgtNTAuMjI3Mi02Ni4zNTUyLTUwLjIyNzJ6IiBmaWxsPSIjRkZGRkZGIiBwLWlkPSI4Njk5Ij48L3BhdGg+PC9zdmc+
@@ -443,9 +443,6 @@
             }
             const skuDict = {
                 sku: skuText,
-                code_ori: skuText.split('-')[0],
-                code_1688: skuText.split('-')[1],
-                code_a: skuText.split('-')[2],
                 title: groupElements[i].querySelector('.gray-c').textContent.trim(),
                 count: parseInt(groupElements[i].querySelector('input#num').value),
                 img: groupElements[i].querySelector('#goodsInfo > div:not(.hide) [uid="groupSkuSelect"] img').getAttribute('src'),
@@ -457,7 +454,7 @@
         document.querySelector('[uid="goodsInfo"]').click();
         // 商品SKU
         const skuElement = document.querySelector('input#proSku');
-        skuElement.value = 'ZH-' + groupSku.map(sku => `${sku.code_a}*${sku.count}`).join(',');
+        skuElement.value = 'ZH-' + groupSku.map(skuItem => `${skuItem.sku.slice(-5)}*${skuItem.count}`).join('-');
         // 商品分类：
         const categorySelectElement = document.querySelector('#catagoryFullName');
         categorySelectElement.click();
@@ -482,7 +479,7 @@
             for (let i = 0; i < -addSourceCount; i++) {document.querySelector('.removeSourceUrl').click();}
         }
         document.querySelectorAll('input[name="sourceUrl"]').forEach((inputElement, index) => {
-            inputElement.value = `https://detail.1688.com/offer/${groupSku[index].code_1688}.html`;
+            inputElement.value = `https://detail.1688.com/offer/${groupSku[index].sku.split('-')[0]}.html`;
         })
 
         // 添加图片, 默认组合的第一个图片
