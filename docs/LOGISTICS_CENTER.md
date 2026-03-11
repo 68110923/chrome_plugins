@@ -1,4 +1,4 @@
-> 🔍 快速切换：[首页](/README.md) | [TK代理教程](/docs/PROXY_TIKTOK.md) | 物流中心教程
+> 🔍 快速切换：[首页](/README.md) | [TK代理教程](/docs/PROXY_TIKTOK.md) | 物流中心教程 | [openclaw部署教程](/docs/OPENCLAW_DEPLOY.md)
 
 # 🦝 [小浣熊ERP官网](https://samforo.icu/) - 定制物流,17track可查询
 

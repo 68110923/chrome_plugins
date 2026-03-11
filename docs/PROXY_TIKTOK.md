@@ -1,4 +1,4 @@
-> 🔍 快速切换：[首页](/README.md) | TK代理教程 | [物流中心教程](/docs/LOGISTICS_CENTER.md)
+> 🔍 快速切换：[首页](/README.md) | TK代理教程 | [物流中心教程](/docs/LOGISTICS_CENTER.md) | [openclaw部署教程](/docs/OPENCLAW_DEPLOY.md)
 
 # TikTok 访问指定国家的商品
 
