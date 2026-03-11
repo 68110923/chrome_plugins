@@ -53,14 +53,8 @@ openclaw channels add
 
 ### 2. 配置大模型
 
-前往 [阿里大模型](https://www.aliyun.com/benefit/scene/codingplan) 购买 Coding Plan 服务，获取 API Key：
+前往 [阿里大模型](https://www.aliyun.com/benefit/scene/codingplan) | [字节大模型](https://volcengine.com/L/JcX5aSN82A4/) | [腾讯大模型](https://cloud.tencent.com/act/pro/codingplan#buy) 购买 Coding Plan 服务，获取 API Key：
 - **API Key**: `sk-sp-c92xxxxxxxxxxxxxxxxxxxd5b8`
-
-前往 [字节大模型](https://volcengine.com/L/JcX5aSN82A4/) 购买 Coding Plan 服务，获取 API Key：
-- **API Key**: `33exxxxx-xxxx-xxxx-xxxx-xxxxxxxf76f`
-
-前往 [腾讯大模型](https://cloud.tencent.com/act/pro/codingplan#buy) 购买 Coding Plan 服务，获取 API Key：
-- **API Key**: `sk-txxxx-xxxx-xxxx-xxxx-xxxxxxxxx`
 
 ## 四、后台启动 Gateway
 
