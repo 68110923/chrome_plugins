@@ -61,7 +61,7 @@ openclaw channels add
 使用以下命令后台启动 OpenClaw Gateway：
 
 ```powershell
-Start-Process -FilePath "C:\Program Files\nodejs\node.exe" -ArgumentList "C:\Users\xxxx电脑用户名xxxxx\AppData\Roaming\npm\node_modules\openclaw\dist\index.js", "gateway", "--port", "18789" -WindowStyle Hidden -PassThru
+Start-Process -FilePath "C:\Program Files\nodejs\node.exe" -ArgumentList "C:\Users\hp\AppData\Roaming\npm\node_modules\openclaw\dist\index.js", "gateway", "--port", "18789" -WindowStyle Hidden -PassThru
 ```
 
 ## 五、安装 Skills
